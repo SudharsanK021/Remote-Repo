@@ -1,0 +1,59 @@
+1.Predictive - have Idea (one Shot)
+vs
+Adaptive - No idea 
+
+2. Incremental _ breaking into smaller parts and bring finished part 
+vs
+Iterative - Building new models on top of existing until new thing is found 
+
+
+
+Water Fall Model :
+
+Requirement needs to be accurate or else problem
+
+
+
+Agile Manifesto :
+
+Communication & interactions over process and tools 
+
+Working Product Over Documents 
+
+Customer Collabration over contract negotiation 
+
+Response to Change over following a Plan 
+
+
+
+Advantages and Disadvantages of Agile 
+Adaptive , People & Interaction 
+
+
+When Agile isnt more valuable : When the project is more predictive and repeatable 
+
+
+For Documentation :
+
+
+
+Just enough , Just in time 
+
+For Predictive :
+	3C = Card --> Conversation --> COnfirmation 
+	
+	
+FOr Adaptive : 
+		Define , Design , Build , Test   {repeat}
+		
+		
+		
+		
+		
+User Stories :
+
+			Card , Conversation [ Who (wants) What (and) Why ] , Confirmation [ Acceptance Test ]
+			
+			
+			GUIDELINES :	
+					Independent, Negotiable, Valuable, Estimable, Small, Testable 
