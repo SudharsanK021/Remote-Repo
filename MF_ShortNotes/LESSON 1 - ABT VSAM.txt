@@ -1,0 +1,78 @@
+------------------>Introduction to VSAM<---------------->lesson 1
+
+VSAM = VIRTUAL STORAGE ACCESS METHOD ( IT IS FILE STORAGE SYSTEM)
+---> FOR DATA ORGANIZATION 
+----> STORING AND RETRIEVING DATA 
+----> ORGANIZING CATALOGED STRUCTURE 
+----> NOT A PROG LANG OR A DATABASE 
+----> NOT EQUIVALENT OT PDS
+
+
+TIME LINE :
+1973: First VSAM introduced - Standard VSAM
+1975: Enhanced VSAM introduced
+1979: DF/EF(Data Facility Extended function) VSAM introduced
+
+
+TYPES:
+KSDS = KEY SEQUENCE   ( DATA AREA + INDEX AREA )  ( IN ORDER OF KEY FIELD)
+ESDS = ENTRY SEQUENCE ( DATA AREA ALONE )( IN SEQUENTIAL ORDER)
+RRDS = RELATIVE RECORD ( DATA AREA ALONE )( IN SEQUENTIAL ORDER)
+LDS   = LINEAR  ( DATA AREA ALONE )( IT IS OF LONG STREAM BYTES) 
+
+
+
+ESDS : ( FIXED BLOCK AND VARIABLE BLOCK  ) 
+--------> DATA CAN BE APPENDED AT LAST 
+--------> INSERT DELETE AND MODIFY 
+------->  IT HAS ONLY DATA COMPONENT
+
+KSDS  :  
+-------->  CAN BE FIXED AND VARIBALE BLOCK 
+--------> ALLOWS AIX 
+--------> CAN SPAN AND UNSPAN RECORD 
+-------->  INSERT DELETE MODIFY 
+--------> CAN INSERT RECORD ANYWHERE 
+--------> IT IS DYNAMIC= SEQUENTIAL + RANDOM & SEQUENTIAL & RANDOM 
+--------> KEY REORD FIELD SHOULD BE UNIQUE 
+
+
+RRDS (SUPPORTS FIXED LENGTH / FIXED BLOCK ONLY ) : 
+--------> PREFORMATED SLOTS OF FB 
+--------> CAN ACCESS SEQ AND RANDOM 
+-------->  EACH SLOT IS IDENTIFIED BY relative position , WHICH  is called the Relative Record Number (RRN) of the slot.
+
+
+LDS :  
+-------> CAN BE ACCESSED AS BYTE ADDRESSABLE STRING 
+------->  USED FOR BACKEND AND APPLICATION Data 
+--------> Logical records must be “blocked” and “deblocked” by the application program. 
+--------> Control infos of records is not available in control area 
+
+CLUSTERS : SET OF CATALOG ENTRIES 
+
+KSDS CLUSTER : INDEX AND DATA COMPONENT
+ESDS CLUSTER : DATA COMPONENT 
+RSDS CLUSTER : DATA COMPONENT 
+
+ADVANTAGES :
+	Protection of Data
+	Cross-system (MVS & VSE) Compatibility
+	Device Independence (Access Via Catalog)
+	Provision to include IDCAMS commands in JCL to handle VSAM
+	Provision for VSCOBOL II/PL-I/ASSEMBBLY Language to access VSAM dataset
+
+
+
+DISADVANTAGES :
+	VSAM requires more storage space than other types of datasets, this is because
+	VSAM datasets carry control information in them, in addition to the actual data that    they are comprised of.
+	VSAM datasets require additional storage free space that must be embedded inthem. This free space results in more efficient management of the data contained in    them, when records are added, deleted or changed.
+	Integrity of VSAM datasets in cross-region and cross-system sharing must be    controlled by the user.
+
+
+
+
+
+
+

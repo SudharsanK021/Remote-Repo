@@ -1,0 +1,686 @@
+Exec --> identify the step during reading of job
+
+Delimeter --> end of USER INPUT 
+
+PGM (member of pds)--> refers name of program to execute 
+
+pgm refers program which is in load library or primary library, EXEC statement cannot access the LIbrary
+
+dd used to refer the library using DSN
+
+When Time paramter is in both JOB and EXEC then both be in effect which cause ABEND Failure
+
+Paramters :
+
+STEPLIB / JOB LIB :
+IF COMPILER Cant find  THE STEPLIB / JOBLIB THEN it uses default library or ABEND failure occur
+
+
+
+Region: ( Default 500 to 1000k)
+allocate storage for the job in cpu
+k --> 1 to 1024
+m --> 1 to 1024K
+
+Time ( default 10.5sec which is checking time )
+--> to get the time in cpu for job 
+= [minute,sec]
+min = 0 to 357912secs 
+sec=0 to 59
+
+
+
+ACCT :
+Account statement 
+used to give account details for the step to be used 
+if mentioned in job and exec , then EXEC ACCT is used 
+
+
+
+PARM:
+USED to give way to supply data into the executinvg program or application program
+
+
+COND parameter:   (maximum 8 tests are allowed inside one COND PARAMETER)
+
+SYNtax = (code,operator) --> in JOB 
+
+
+
+------->  Return code is number which is between  0 to 4095
+	               -------> Maximum 8 test in a cond can used 
+	Used to control the exectuion of step in the  job by means of conditions 
+	return code is return by execu prgm just bef exec.
+	return specifies the result of execution 
+
+work of COND
+
+		Cond ---------> satisfies(true) -----> By pass Step
+		     |
+		     |  --------->( false )-----> Execute step
+			
+	When Job statement has the COND and it checks for all the steps with cond.
+	If the return code is satisfies by any statement then JOB TERMINATES.
+	Doesnt Care even if EXEC statement has condition and satisfies or not JOB TERMIATes
+
+
+ Return Code in COND:
+
+		0 - Sucess, 4 - Warning , 8 - questionable result , 12 - bad result, 16- terminal cond 
+
+
+
+Operators of COND : 
+LT(lesser than) , 
+GT ( greater Than ), 
+LE(lesser or equal),
+GE( greater or equal), 
+EQ(equal), 
+NQ(not equal)
+
+
+
+
+COND in EXEC  :
+
+		syntax  :(code,operator,stepname)(even,only)  --> in STep ( even - even previous step is ABEND or  NOT , only - only iF prev step is ABEND THEN EXECUTE THE STEP)
+
+****************** If test statisfies in cond in exec then that step only not executed 
+---->		If the First step containes (ONLY) then the subsequenty step is ignored , becuase first step is needed to get the RETURN CODE 
+
+
+
+EVEN & ONLY :
+		---------> EVEN and ONLY cannot only make reference to a particular step. They refer to any 
+previous step that has ABENDed.
+
+***************************************************SYNTAX***************************************************** 
+		//STEP1 EXEC PGM=  , COND=((0,EQ,STEP1),EVEN/ONLY)
+
+
+
+COND	     JOB 	  	EXEC
+TRUE      TERMINATE        BYPASSED
+FALSE    CONTINUES        EXECUTED	
+
+
+Statements in COND:
+IF , THEN , ELSE, ENDIF
+Nesting upto 15 levels .
+
+
+RULES   : 
+IF________________THEN(TURE = EXECUTE THE STEP)
+ELSE(IF IS FALSE = EXECUTE THE ESLE PART STEP)   
+
+SYNTAX  : 
+//RCTEST IF (STEP1.RC GT 20|STEP2.RC = 60) THEN
+//STEP3 EXEC PGM=U
+//ENDTEST ENDIF
+//NEXTSTEP EXEC
+
+
+
+EXAMPLE :
+
+//
+DSRP039A JOB (),NOTIFY=&SYSUID
+//STEP01 EXEC PGM=IEBGENER 
+//XYZ IF (STEP01.RC=0) THEN 
+//STEP02 EXEC PGM=IEBCOPY 
+//XYZ ELSE 
+//STEP03 EXEC PGM=IEFBR14 
+//XYZ ENDIF 
+//
+
+
+
+
+Keywords :
+		RC 	-	 Return COde
+		ABEND 	-	 Indicates occurrence of Abend
+		¬ ABEND 	-	 Indicates non occurrence of Abend
+		ABENDCC 	-	 Indicates a specific system or user abend code
+		RUN 	-	 Indicates execution of the specified Step
+		¬RUN 	-	 Indicates non execution of the specified step
+
+Fragments :
+		//IF     THEN
+		//ELSE
+		//ENDIF
+	
+Relational : 
+AND (&)
+OR(|)
+NOT(-|)
+
+
+Summary  :
+
+The PGM parameter identifies the program to be executed in a step.
+The REGION parameter specifies the limit of available storage for the step.
+The TIME parameter specifies the total amount of CPU time that the step is allowed to use.
+The ADDRSPC parameter specifies if the step will use real or virtual storage. 
+The ACCT parameter specifies accounting information to be used for the step.
+The PARM parameter provides a way to supply data of limited size to the executing program. 
+Controlling the execution of steps within a job is done by specifying the COND parameter.
+
+
+------------------------------------------------------------------------------------------------------
+
+
+
+
+
+DD --> Defines the data set 
+When program in EXEC wants to read from or write to a dataset DD Statement is used 
+MAXIMUM OF 3273 DD STATEMENT CAN BE USED IN ONE EXEC STATEMENT 
+
+SYNTAX:
+DSN = name
+(for member)DSN = name(member_name)
+
+
+
+EXCEPTION :
+JOBLIB 
+JOBCAT
+PROCLIB 
+
+===> THESE CANT BE USED INSIDE A DD STATEMENT 
+
+
+Dataset Types: ( while executing it is passed as SYSyyddd.rv0001.job_name,dn_name )
+Temporary :  
+--> Starts with && with 6 characters 
+--> USed for work area in JOb 
+--> Temp DS Terminates when Job Terminates
+
+EXAMPLE OF TEMP DATASET : 
+//DD1 DD DSN=&&TEMP,UNIT=SYSDA,
+// SPACE=(TRK,(2,1),RLSE),
+// DISP=(,PASS,DELETE)
+
+
+
+
+Permanent:
+-----> without && 
+-----> IF WITH " " THEN IT IS Temporary  DS
+if DSN not mentioned then default is Temporary
+
+PARAMETERS : 
+ DSN  --> used for permanent dataset creation , if not used temporary, 
+	           --> Temporary created by && in DSN
+
+DSNAME --> mosty used in procedures (referback)
+
+***********************************REFERBACK**************************************
+
+		DSN, DCB, VOL 
+
+--------->  Backward reference (Referback) is used to copy information from a previous DD statement (within the same job)		
+--------->CAN BE USED IN DCB,VOL AND DSN OF DD STATEMENT   & CAN BE USED IN PGM OF EXEC 
+
+
+SYNTAX : 
+------------->   DSN=*.STEP2.OUT  [ SAYS TO COPY THE DDNAME FROM OUT DD IN THE PREVIOUS STEP][OUT IS THE DD NAME ]
+------------->   DSN=*.DD1[INDISE SAME STEP REFER THE DD1 DD STATEMENT THAT IS PREVIOUS DD STATEMENT AND COPY THE NAME ]
+
+************************************************************************************
+
+DISP PARAMETER : 
+----> [ NEW , DELETE , DELETE ] is the default is DISP not mentioned      
+
+ SYNTAX --> [STATUS, NORMAL DISPOSITION , ABNORMAL DISPOSITION]
+-->     (    [   NEW , OLD , SHR , MOD ] , [ CATLG,UNCATLG,DELETE,KEEP,PASS],[CATLG,UNCATLG,DELETE])
+---> THESE ARE SUB PARAMETER
+--> uSED to mention how dd is created and executed when step terminates
+
+
+MOD SUBPARAM : 
+--> treats as dd is already exists if cataloged or vol=ser or vol=ref
+-->  can use to append data in existing ds ,   neither cataloged nor vol=ser nor vol=ref          
+ 
+
+CATLG SUBPARAM : 
+--> AN entry of DataSet  is made in the catalog if CATLG is mentioned and the DS is Kept 
+
+KEep :
+--> DS will be kept even if the step terminates
+
+PASS : 
+---> Entry will be made in the table storage (passed dataset table queue)
+---> PASSES TEMPORARY DATASET IN THE JOB EXECUTION AND THEN TERMINATES
+
+
+
+DEFAULT VALUES :
+---> DEFAULT STATUS is NEW 
+---> if NEW is used then default is  DELETE
+---> IF DS is PASS then default is  DELETE
+---> If MOD then it is OLD or SHR 
+---> If OLD and SHR then default is KEEP 
+---> IF OLD OR SHR OR MOD  then it is  PERMANENT DS
+
+
+
+UNIT :  
+--->      CAN BE SPECIEFIED USING DEVICE ADDR , DEVICE NAME OR GENERIC NAME 
+--->      [ DEVICE NAME , DEVICE COUNT(LIMIT IS 59 , DEFAULT COUNT IS 1 )] 
+--->     SYSDA , DISK , TAPE 
+--->     has no DEFAULT 
+--->     USED TO SPECIFY THE STORAGE TYPE OF DS 
+
+
+
+VOLUME : -----------------------------------------------> volume=ser=STRVL1 , volume=ser=DEVSYS1
+----> USED TO SPECIFY THE SIZE  ALLOCATED FOR DS IN THAT UNIT STORAGE
+----> VOL-SER, VOL-REF 
+----> USED WHILE RETRIVING DS OR CREATION UPON NEW DS
+
+
+SPACE :   ------> DEFAULTS TO ZERO  
+----> PRY , SEC , DATA UNIT (OR)   ---->TRK/CYL , UNITS / BLKSIZE , RLSE 
+----> TRK - TRACK    -----> 1000 TRACK = CYCLINDER
+----> HOW MANY BLKSIZE UNITS NEEDED IN DATASET 
+
+	RLSE :
+		----> DoESNT WORK WHEN DS IS SHARED OR  STEP ABENDS	
+
+
+ 	UNITS / BLKSIZE :
+		----> PRIMARY 
+		---->SECONDARY 
+		----> DIRECTORY (256 BYTES EACH)
+EXTEND = SECONDARY EXTEND * 15
+DIRECTORY 1 = 5 MEMBERS CAN BE STORED 
+
+----------------> ONE OR MORE TRACKS = EXTEND
+----------------> SPACE (BYTES PER DS , RECORD COUNT / DS COUNT)
+
+LABEL :  
+LABEL IS USED FOR MENTIONING A SEQ NUMBER TO A DATASET SO CAN BE USED TO RETRIEVE EASILY 
+
+DEFAULT : 
+( NOTE : 1 AND SL IS DEFAULT )
+
+USAGE :
+	1.RETRIEVING A DATASET FROM CATALOG 
+	2.RETRIVIENG A PASSED TAPE  DATASET 
+
+
+---->  Syntax :   label = [ seq-no , type ] ( NOTE : 1 AND SL IS DEFAULT )
+---->  SEQ NUMBER -----> default is 1 ,   usually is  0 TO 4 DIGITS . FROM 1 TO 9999.
+-----> TYPE 
+	-----> SL , NL , BL  
+		------> SL - STANDARD LABEL ( DURING VERIFICATION SL AND VOLUME TYPE IS VERIFIED )
+		------> NL - NO LABEL ( VERIFICATION NO NEEDED AND USED ONLY IN DEVICES LIKE DOEST HAVE  SL )
+		------> BYPASSING LABEL PROCESSING : 
+			-----> USED WHEN SL AND NL CANT ACHIEVE THE GOAL
+			-----> MAKES NOT TO TREAT IT AS A ORDINARY FILE AND RECOGNIZE IT 
+
+
+
+DCB - DATA CONTROL BLOCK:( EXISTS ONLY IN NON VSAM)
+ 	----> EXISTS IN NON-VSAM
+	---->DCB BLOCK IS FULFILLED BY THE VALUES OF SUB PARAMTERS AND USED TO CREATE THE DATASET 
+	---->DCB IS CONSTRUCTED BY LANGUAGE PROCESSOR WHERE IS CODED IN PROGRAMS LIKE COBOL.
+	
+SUPPLIERS : 
+	----> when value is hardcoded DCB ignores 
+	---->values for  subparameters of DCB are not used from LABELS if they are hard coded in program 
+
+
+Referback  of DCB :
+	----> dcb = *.stepname.ddname   
+			---->refers to copy dcb values from previous step 
+	----> dcb = *.ddname
+			---->refers to copy dcb values from same  step of ddstatement 
+	----> dcb = *.procexec.stepname.ddname
+			---->refers to copy dcb values from previous step of ddstatement where these are under procedure 
+
+
+DCB SUBPARAMS :
+
+	---> BLKSIZE = LRECL * 10 , IF NOT CODED GIVES VALUE BASED ON TYPE OF VOLUME
+	----> LRECL can be as high as 32,760 but only 32,752 are accessible
+	-----> RECFM AND LRECL IS ALWAYS HARCODED 
+	-----> RECFM = FIXED -F , FIXED BLOCK - FB , V - VARIABLE , VB - VARIABLE BLOCK , U - Undefined 
+	-----> DSORG = PS, PO , DS , IS 
+	-----> DEN = DENSITY OF TAPE
+	-----> BUFNO = NUMBER OF BUFFERS 
+
+LRECL : 
+	-----> LRECL can be as high as 32,760 but only 32,752 are accessible
+	-----> IF LRECL=0 IT IS USED FOR LOAD MODULES
+	-----> FOR VB LRECL IS HIGHEST LENGTH+ 4 BYTES(DEFAULT RECORD DESCRIPTOR VALUE) 
+
+
+
+
+IN STREAM DATA :
+	
+	---> SYNTAX  ==  //DDNAME(example : SYSIN)      DD*
+
+
+	----> when job sub,itted it supplies input to LOAD MODULES
+	---> JES2 and JES3 contols these INSTREAM DATA
+	---> SYSIN are stored in SPOOL(also called as  INPUT SPOOLING) , which will,be there in the SPOOL AREA 
+
+	SYSIN : 	
+		----->SYSIN is  the default , It is used to pass control infos to utility
+		-----> when DELIMETER - /* is detected it stops the as no more input/data to be passed  
+
+	SYSOUT : -------------------------------------------------------> SYSOUT CLASS  should be same as MSGCLASS
+		-----> used to assign output class
+		-----> controlled by JES2, JES3 
+		
+		-----> When output released SYSOUT stores them in SPOOL AREA 
+		-----> DS should be assigned with MSGCLASS , which take care of printing output in SPOOL 
+		-----> ALWAYS DIRECTS TO THE PRINTER / IO DEVICES 
+
+
+		SYNTAX :
+			----->  //SYSPRINT DD SYSOUT=*   ----> Directs to MSGCLASS 
+	
+CONCATENATION : 
+	----->  For sequential datasets, the maximum number of concatenation is 255; and for PDS, it is 16.
+	----->  RULES OF CONCAT : 
+			---> if the DataSEt is DUMMY dataset then the next comming/ added DATASET will not be added
+			--->LRECL AND RECFM can be same , BLKSIZE for FIRST DATASET should be greated than others. 
+
+
+
+DUMMY PARAMTER : ( can dummy only ps and vsam)
+
+
+
+	-----> NO allocation , IO opperation can be performed 
+	-----> Positional PArameter 
+	-----> Can Dummy PS and VSAM and not PDS
+	-----> USED TO eliminate use of IO operations when required 
+	-----> Soemtimes DCB is required 
+
+
+
+
+SYNTAX :          ----- >    //DDNAME DD DUMMY 
+			(OR)
+	         ----- >    //DDNAME DD DSN=NULLFILE 	
+
+
+Replacement of DUMMY
+---------------------------
+
+	----> NUllFILE and it is POSITIONAL parameter 
+
+	
+JOBLIB PARAMETER : (CONTAINS ADDRESS OF PGM IN DS)           ( loadmodules) 
+	-----> IT IS A DD STATEMENT
+	-----> JOBLIB IS LIBRARY WHERE PGM PROG SHOULD EXECUTE THROUGHOUT THE JOB 
+	-----> JOBLIB IS THE SYSTEM LIB OR LOAD LIB WHERE THE PROG RESIDES
+	-----> BETWEEN JOB AND EXEC STATEMENT
+	-----> MAXIMUM 16 CONCATENATION OF JOBLIB 
+
+SYNTAX : 
+	--> //CAPGB24    JOB 	NOTIFY=&SYSUID
+	-->//JOBLIB       DD                 DSN=CAPGB24.SUDHAR.LX001122 
+	-->//STEP1         EXEC	PGM=IEFBR24
+
+  
+ STEPLIB : 	
+	-----> STEPLIB IS A LIBRARY WHERE THE PROGRAM OF THAT STEP SHOULD EXECUTE , IT CAN BE SAVED ANYWHERE 
+
+//CAPGB24 JOB NOTIFY=&SYSUID
+//STEP1 EXEC PGM=IEFBR24
+//STEPLIB DD DSN=CAPGB24.SUDHAR.LOADLIB
+
+	-------> LOAD.LIB is where the program should reside after execution
+
+
+STORAGE DUMPS:(USER'S PRIVATE ADDRSPC HAS BEEN USED HERE)
+
+Default : 
+	-----> If nothing is gievn like SYSUDUMP/SYSABEND/SYSMDUMP small amount of cause of ABEND program is given in spool area 
+
+
+
+Explanation : 
+	-----> Storage dumps are virtual storage to dump the ABEND failures for user to find the cause of failure
+	----->Three Storage Dumps
+			1.SYSUDUMP   2.SYSMDUMP   3.SYSABEND
+
+SYNTAX : 
+	------>  //SYSUDUMP DD SYSOUT=*   = User Region
+	------>  //SYSMDUMP DD SYSOUT=*   = private addrs space + System Areas 
+	------>  //SYSABEND DD SYSOUT=*    = User Region + System Areas 
+
+	----->What it means is that when abend failure hapens dump them and show in output		
+
+
+
+JOBCAT & STEPCAT DD STATEMENT :
+
+	• The dataset used in the step are first checked in the STEPCAT (ICF or VSAM catalog) before checking in 
+		system catalog.
+	• If no STEPCAT in the step and there is a JOBCAT, then the datasets are first searched in JOBCAT before 
+		checking in the system catalog.
+
+
+
+OUTPUT STATEMENT :
+
+EG :
+//OUTNAME OUTPUT DSN=
+//SYSOUT DD SYSOUT=*,OUTPUT=(*.OUTNAME)
+
+
+PRINTS THE OUTPUT IN SYSOUT AND ALSO IN THE DATASET
+
+
+
+
+-------------------------------------------------------------------------------------------
+
+PROCEDURE  : 
+	-----> SET OF PRE CODED JOB STEPS  to perform a specific funtion 
+	----->  Duplicate Coding and Utilization is high and time Management 
+	----->  Many User can  access these proc 
+	------> Overriding  By Diff User can be done by passing DIfferent Parameter Values
+
+
+SYNTAX : 
+//stepname EXEC PROC=PROC Name /       //stepname EXEC ProcNAme 
+
+
+Exception / Invalid Error : (not permitd in proc)
+	------> JOB , JOb Lib , JOb Cat
+	------> Exec invoking another PROC
+	------> Pend 
+	------------------------------------------>   DD *  or Data   [User input data / SYSIN DD *]
+	------> NULL or // 
+
+
+Types  : 
+CATLG PROC  ----> MEMBER OF PDS , REFERED to as jcl stored  in PROCLIB / PROC LIBRARY 
+INSTREAM   -----> CONTAINS INSIDE JOB'S  INPUT STREAM
+
+
+CATOLOG PROCEDURE : 
+	---------------------------> MEMBER OF PDS
+ 	-------->   EXISTS PERMANENTLY UNTIL DELETED 
+	------> USED BY ANY NO OF JOBS 
+	------> PEND NOT REQUIRED 
+	------> JCLLIB HAS THE LOCATION OF PROCEDURE
+	------> PROC WILL BE IN DIFF PLACE 
+
+SYNTAX :    IN JOB FILE IT WILL HAVE
+		//JOB 
+		//JOBLIB ORDER 
+		//EXEC PROCNAME
+
+
+INSTREAM PROCEDURE : 
+	------> ONLY ONE JOB CAN USE IT 
+	------> INSIDE JOB INPUT STREAM 
+	=====>   PROC STATEMENT IS USED 
+			------> PROC SAYS THE BEGIN OF INSTREAM PROC
+			------>  SYBOLIC PARAMETER AS DEFAULT  
+	-------> PEND IS MUST  
+
+
+CALLING OF PROCEDURES : 
+		==========  >  INSTREAM CAN CALL CATALOG 
+		==========  >  CATALOG CAN CALL CATALOG 
+		==========  >  CATALOG  CAN'T  CALL INSTREAM 
+
+
+PROCEDURE  WORKING : 
+		-----> 15 PROC IS ALLLOWED 
+		-----> IF 15 IN DIFF LOCATION JOBLIB MUST MENTION IT 
+	                 
+
+
+PROC STATEMENT  : 
+	--------> HAS SYMBOLIC PARAM AS DEFAULT ( EXEC PARAMTERS OVERRIDE SYMBOLIC VALUES)
+
+
+OVERRIDING PARAMTERS   :
+	---------> IT CAN ADD , REPLACE OR  NULLIFY PROC PARAMTERS VALUE
+	--------------------------------------> MUST BE FULLY WRITEN EXCEPT DCB 
+	-------> JCL ERROR CANT BE OVERRIDE AND REPLACE 
+	--------> exec can be nullified 
+	--------> dd statement cannot be nullified 
+
+EXEC STATEMENT  OVERRIDING  :
+
+EXAMPLE :  
+		------------->  //STEP2 EXEC MYPROC,TIME.STEP1=10,REGION.STEP1=
+
+
+		SYNTAX  :      PARAMTERNAME.STEPNAME=VALUE
+
+------------------------------------> EXEC OVERRIDING PARAMTERS MUST BE IN EXEC WHICH INVOKES PROCEDURE
+		------> PGM CANT BE OVERRIDING 
+		------> EXEC STEPS MUST BE OVERRDING IN SEQUENCE 
+			----> CANT OVERRDIE STEP1 , THEN STEP2 AND THEN STEP1 AGAIN 	
+		------> WITHIN ONE EXE STEP SEQUECNE NOT IMPortant except POSITIONAL PARAMETER
+
+
+
+
+DD STATEMENT OVERRIDING  : (IN OVERRIDING DUMMY IS DIFF AND ELIMINATE MEANS NULLIFY)
+
+----------> SEQUEMCE IN OVERDE DD STATEMENT MUST BE SAME AS IN PROC DD   ( ONLY FOR POSITIONAL PARAMTERS)
+----------> DD CANT BE DELETED BY OVERRIDE
+
+		SYNTAX : 
+		----------> //STEPNAME.DDNAME  DD PARAMETERS   (OVERRDIE ONE PARAMTER)
+					----->  DDNAME IS THE NAME IN THE PROCEDURE 
+					
+
+		
+		----------->  OVERRIDE MANY  DD PARAMETER 
+				//STEPNAME.DDNAME DD PARAM1
+				//		       DD - PARAMTERE2	
+                                                               //		       DD - PARAMeTER3
+      	
+
+
+SYMBOLIC PARAMTER : 
+		----->  SYMBOLIC OVERRIDE IS POSSIBLE IF SYMBOLIC PARAMTER IS IN PROCEDURE 
+		----->  SYM PARAMTER NAME === & - STARTS 
+		----->  SYM DEFAULT VALUE WILL BE IN PROCEDURE AND IT CAN BE OVERRIDDEN IN THE EXEC WHICH INVOKES PROCEDURE 
+		----->USED IN CATLOG AND INSTREAM 
+
+EXAMPLE :
+
+		//MYPROC PROC A=LP2WK1,B=SYSDA2     --> STARTING PROC STATEMENT 
+		//STEPX EXEC MYPROC,A=LP1WK1,B=SYSSQ --->EXEC WHICH INVOKES PROC
+
+
+RULES OF SYM OVERRIDING :
+		// TIME AND REGION EXEC CAN;t BE OVERRIDED / OR NOT USED AS SYMBOLIC PARAMTER 
+
+************************************************************SYNTAX :********************************************************
+
+------------------------------------'.' represents PERIOD
+
+		// PROC1 PROC PARAM=&LD.AA ('.' represents PERIOD)                              --> STARTING PROC STATEMENT 
+                                // STEP1 EXEC PROC1,LD =A  --->EXEC WHICH INVOKES PROC          
+SYNTAX RESULT : 
+  		//STEP1 EXEC PARAM=AAA
+
+
+SYMBOLIC PARAMTER SUBSTITUION EXAMPLE 1 :
+	//ABC PROC R=800K, Q=AUX, U=TAPE
+	//S1 EXEC PGM=P2, REGION=&R
+	//IN DD DSN=&Q..FILEX, DISP=SHR
+	//OUT DD DSN=&Q..FILEY, DISP=(, CATLG,DELETE),
+	// UNIT = &U
+	//A EXEC SWP, Q=MAX,UNIT=SYSDA
+
+
+SUBSTITUTION RESULT :(HERE SINCE Q & D HAS BEEN WRITTEN IN INVOKING IT IS SUBSTITUTED)
+	//S1 EXEC PGM=P2, REGION=800K
+	//IN DD DSN=MAX.FILEX, DISP=SHR
+	//OUT DD DSN=MAX.FILEY,DISP=(,CATLG,DELETE),
+	// UNIT = SYSDA 
+
+
+
+SET STATEMENT :
+		------->  INSTEAD OF OVERRIDING THE PARAMTERS IN EXEC STATEMENT SET STATEMENT IS USED 	
+		------->SET STATEMENT IS SAME AS SYMBOLIC OVERRIDING 
+
+EXAMPLE :(SOMETIMES SET CAN ONLY THE STEPNAME OF SET 
+	//MYPROC PROC A=LP2WK1,B=SYSDA
+	//STEP1 EXEC PGM=IEFBR14
+	//DD1 DD DSN=MAINUSR.INPUT.FILE1,DISP=SHR,
+	// VOL=SER=&A,UNIT=&B
+	// PEND
+	//SET1 SET A=LP1WK1
+	//SET2 SET B=SYSSQ
+	//STEPX EXEC MYPROC
+
+
+
+INCLUDE STATEMENT :
+	----------> SIMILAR TO PROC INCLUDE CAN BE USED AS SINGLE JCL WHICH CAN BE USED BY MULTIPLE JOBS 
+
+EXAMPLE :
+	A PS OR MEMBER OF PDS CAN HAVE THESE STATEMENTS ,
+			//SYSPRINT DD SYSOUT=* 
+			//SYSIN DD DUMMY
+			//SYSOUT DD SYSOUT=* 
+
+
+EG1 :
+//MYJOB JOB
+//DD1 JCLLIB ORDER=COMMOM.PDS
+//STEP1 EXEC PGM=MYPGM
+//INDD DD DSN=A.B.C,DISP=SHR
+//INC1 INCLUDE MEMBER=COMMON
+
+
+AT RUNTIME  : 
+
+//MYJOB JOB
+//DD1 JCLLIB ORDER=COMMON.PDS
+//STEP1 EXEC PGM=MYPGM
+//INDD DD DSN=A.B.C,DISP=SHR
+//*INC1 INCLUDE MEMBER.COMMON
+//SYSPRINT DD SYSOUT=*
+//SYSIN DD DUMMY
+//SYSOUT DD SYSOUT=*
+
+
+HERE THW VALUES IN COMMON FILE IS INVOKED INSIDE THE JOB WHILE EXECUTION 
+
+
+
+
+
+
+

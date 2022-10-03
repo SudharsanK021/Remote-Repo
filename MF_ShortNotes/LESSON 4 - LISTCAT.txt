@@ -1,0 +1,52 @@
+------------------------------------LISTCAT 
+
+LIST CAT HAS 2
+	LISTCAT ENTRIES 
+	LISTCAT LEVEL  
+
+
+   entry name: The generic name of each entry to list.
+• level: The level of qualification at which to begin listing.
+
+ENTRIES SHOWS THE DETAILS 
+LEVEL SPECIFIES AT WHICH LEVEL THE ENTRIES TO BE LISTED
+
+
+
+• If the LEVEL qualifier is specified, then VSAM assumes that qualifier to be the high level
+qualifier and lists every entry with that qualifier.
+
+
+LEVEL SYNTAX  :
+
+(A.B.)   SAME AS (A.B.*)
+WHERE A.B.* SPECIFIES LOWER QUALIFICATIONS AND NOT ALLOWED TO USED IN LEVEL 
+
+
+ENTRIES AND LEVEL PARAMTER : 
+CLUSTER  - ( THIS ONE RESTRICTS THE INFORMATON OF BASE CLUSTER ONLY 
+HISTORY ( TYPE OF ENTRY , EXPIRATION DATE)
+VOLUME (SPECIFIES VOLUME DETAILS)
+
+*******************************************ALLOCATION  PARAMETER
+
+	SPECIFIES THE DATA AND INDEX COMPONENTS 
+	SPECIFIES THE SPACE ALLOCATION 
+	AND ALSO HISTORY AND VOLUME AS WELL
+
+
+***************************************ALL  PARAMETER
+
+SPECIFIES ALL THE INFORMATION OF DS WHICH IS EQUAL TO USE ALL THE PARAMETERS
+
+
+
+
+LISTCAT()  CLUSTER......ALL / ALL / HISTORY / ALLOCATION / VOLUMES 
+
+
+
+
+
+
+

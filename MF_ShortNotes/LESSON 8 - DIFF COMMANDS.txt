@@ -1,0 +1,112 @@
+**************************************LESSON -8
+
+
+VERIFY :
+	IT VERIFIES THE CATLG HURBA AND ITS CONTROL BLOCK HURBA IS STROED CORRECTLY IN DATA COMPONENT 
+	VERIFIES VOLUME , DATASET ,
+
+SYNTAX : 
+//VERIFY JOB 'JAY
+MOSELEY',CLASS=A,MSGLEVEL=(1,1),MSGCLASS=A
+//IDCAMS EXEC PGM=IDCAMS,REGION=4096K
+//SYSPRINT DD SYSOUT=A
+//SYSIN DD *
+VERIFY DATASET(MVS801.STUDENT.FILE)
+/*
+// 
+
+********************************************************************************************************************
+
+DELETE COMMAND :
+
+AIX , VSAM , NON VSAM , PATH , GDG 
+
+
+ADDITIONAL PARAMS : 
+	ERASE|NOERASE:
+	FORCE|NOFORCE:
+	PURGE|NOPURGE:
+	SCRATCH|NOSCRATCH:
+
+******************************************************************************************************************** 
+ 
+PRINT :
+	CAN PRINT DATASET IN SYSPRINT AND ALSO IN DATASET AS WELL
+
+
+
+SYNTAX : 	
+*******************IN SYSPRINT :
+		PRINT da0001t.lib.ksds.cluster
+		PRINT INDATASET (da0001t.lib.ksds.cluster)
+		PRINT INFILE (dd1)
+
+*******************IN DATASET:
+		PRINT da0001t.lib.ksds.cluster  -
+		OUTFILE (dd1)
+		PRINT INDATASET (da0001t.lib.ksds.cluster) -
+		OUTFILE (dd1)
+
+
+
+ADDITIONAL PARAMS :
+
+		(FROM)	KEYS , ADDRESS , NUMBER      (TO) 
+
+
+********************************************************************************************************************
+
+
+ALTER :
+	USED TO CHANGE THE VALUES OF PREDEFINED IN DATASET
+
+
+ALTERABLE VALUES : 
+	 Add / Remove Volumes
+ 	 Change Keys and Uniqueness
+ 	Change Record Size
+ 	Change Upgrade Option
+ 	Change % of FREESPACE etc.
+
+
+ALTER ATTRIBUTES :
+	ADDVOLUMES (volumes)
+	AUTHORIZATION (entry string)
+	BUFFERSPACE (size)
+	ERASE | NOERASE
+	FREESPACE (ci%, ca%)
+	MASTERPW (password)
+	NEWNAME (newname)
+	READPW (password)
+	SCRATCH | NOSCRATCH (for GDG)
+	SHAREOPTIONS (cross region cross system)
+	UPGRADE | NOUPGRADE
+	UPDATE | NOUPDATE
+	UPDATEPW (password)
+
+
+
+
+
+ALTERABLE ATTRIBUTES FOR EMPTY DATASET : 
+
+		 KEYS (length offset)
+ 		 RECORDSIZE (avg max)
+		 UNIQUEKEY | NONUNIQUEKEY
+
+
+
+SYNTAX : 
+	ALTER DA0001T.LIB.KSDS.CLUSTER -
+		NEWNAME (DA0001T.MY.CLUSTER) 
+		ADDVOLUMES (BS3001 BS3005)
+
+
+
+
+***********************************************************UNALTERABLE ATTRIBUTES :
+
+			CISZ
+ 		                REUSE/NOREUSE
+
+

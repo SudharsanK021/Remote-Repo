@@ -1,0 +1,257 @@
+https://meet.google.com/hjc-hkve-wdx
+
+
+
+identification division
+environment division
+	input-output section
+		file control
+data division
+	file section 
+	working-storage section
+procedure division
+
+
+
+PROGRAM DIVISION SECTION PARAGRAPH SENTENCE STATEMENT 
+
+
+GROUP MOVE IS CONSIDERED AS NON NUMERIC ONE 
+
+DATA NAME OF RECORD NAME 
+DATA NAME IN GROUP NAME 
+
+ADD NUM TO NUM2 GIVING NUM3 
+SUBTRACT NUM FROM NUM2 GIVING NUM3
+MULTIPY A BY B GIVING C 
+DIVIDE A INTO B GIVING C C = B/A REMAINDER D.
+
+
+
+conditions :
+relational ---> greater than
+sign cond  ---> positive , negative , zero
+class cond ---> numeric , alphabetic.
+
+
+
+Iterations :
+
+PERFORM : 
+			simple Perform ,  
+			Perform Through/ THRU ----->    perform para1 thru para 5 
+					.
+					.para 1 
+					.
+					.
+					.
+					.para 5
+			Perform para-name until 5.
+			Perform para-name 5 times.
+			Inline Perform -----> it performs operation instead of a separate paragraph 
+					
+
+perform 1para to 5 para with test ( before / after )
+
+before --> do while ( FIRST DOES , CHECK CONDITION IF FALSE ENTERS LOOP BODY ) 
+after  --> repeat until / do until ( FIRST ENTERS LOOP BODY , CHECK CONDITION IF FALSE REPEATS UNTIL CONDITION IS TRUE ) 
+
+
+For LOOP -- Perform 
+
+		Perform Para-NAME WITH TEST BEFORE  VARIYING VARIABLE_NAME FROM 5 BY 1 UNTIL (CONDITION)
+					----> 1	 2  3	4	5    , INCREMENTS 1 EVERYTIME UNTIL CONDITION MET 
+
+
+
+READING AND WRITING FILE.  ( BUUFER IS STOTAGE OF COMOPUTER MEMORY )
+	READ THE FILE FROM SECONDARY DEVICE TO INPUT BUFFER
+	TRANSFER FROM INPUT BUFFER TO OUTPUT BUFFER
+	WRITE FROM OUTPUT BUFFER TO ANOTHER FILE 	
+	
+
+FILE HANDLING :
+
+	  * OUTPUT.... WRITING FOR FIRST TIME
+      * INPUT .... READING FILE
+      * EXTEND.... APPENDING RECORDS
+      * I-O ...... READ AS WELL AS WRITE
+
+
+
+
+SORTING IN COBOL : 
+	DUPLICATES IN SORT FIELD 
+		Sort Sort-File
+		On DESCENDING KEY Srt-Salary
+				With Duplicates In Order
+		Using Unsorted-File-In
+		Giving Sorted-File-Out
+
+
+
+		INPUT PROCEDURE - DONE BEFORE SORTING  -  RELEASE (SPECIAL WRITE)	-	DONT USE 'USING'
+		OUTPUT PROCEDURE - DONE BEFORE SORTING  -  RETURN (SPECIAL READ)	-	DONT USE 'GIVING'
+
+
+
+MERGE FILES : ALL FILES SHOULD BE IN SAME SORTED ORDER BEFORE MERGE 
+
+
+CALL SUBPROGRAMS : 
+	IN CALLING PRG  =  CALL SUBPRG-NAME USING WRK VAR 
+	IN CALLED  PRG  =  PROCEDURE DIVISION USING WRK VAR ...... END PROGRAM
+
+
+CALL BY REFERENCE : CHANGES MADE IN SUB WILL REFLECT IN MAIN 
+CALL BY CONTENT   : CHANGES MADE IN SUB WILL NOT REFLECT IN MAIN
+
+
+
+
+TABLE HANDLING --------------------------------------------------------------------
+
+OCCUR 
+
+INDEXED 
+
+SUBSCRIPT
+
+SET
+
+SEARCH SYNTAX : (INDEXED USED COMPLUSORLY)
+   SEARCH  
+      AT END DISPLAY '  NOT FOUND IN TABLE'
+      WHEN  CONDITION 
+      DISPLAY 'LETTER   FOUND IN TABLE'
+   END-SEARCH.
+
+
+SEARCH ALL : 
+   SEARCH ALL 
+      AT END DISPLAY '  NOT FOUND IN TABLE'
+      WHEN  CONDITION 
+      DISPLAY 'LETTER   FOUND IN TABLE'
+   END-SEARCH.
+
+
+STRING HANDLING --------------------------------------------------------------------
+
+INSPECT : SEARCHES FOR HOW MANY CHARACTER OCCURANCE
+
+	INSPECT WS-STRING TALLYING WS-CNT1 FOR CHARACTER.  
+	INSPECT WS-STRING TALLYING WS-CNT2 FOR ALL 'A'.
+
+REPLACING : REPLACE WITH OTHER CHAR IN FOUND CHAR POS
+
+	INSPECT WS-STRING REPLACING ALL 'A' BY 'X'.
+
+
+STRING VERB : CONCATENATES WORDS  ( DELETED BY SIZE AND SPACE )
+
+	STRING WS-STR2 DELIMITED BY SIZE
+		WS-STR3 DELIMITED BY SPACE
+		WS-STR1 DELIMITED BY SIZE
+		INTO WS-STRING 
+		WITH POINTER WS-COUNT
+		ON OVERFLOW DISPLAY 'OVERFLOW!' 
+    END-STRING.
+
+
+UNSTRING VERB :
+
+	UNSTRING WS-STRING DELIMITED BY SPACE
+		INTO WS-STR1, WS-STR2, WS-STR3
+	END-UNSTRING.
+
+
+
+LESSON 2 ------------------------------------------------------------------------------------
+
+		V , S 
+		Z * $ - + CR DB . , B 0 /
+
+
+
+Z : ZERO SUPRESSION
+		REMOVE ZERO AND INSERT BLANK 
+
+
+$ Dollar Sign:
+
+		Only one currency symbol is inserted to the left of the first non-zero digit of the 
+data.
+		$$$$V99 		0.15 		bbb$15
+		$$$$9V99 		150.10 		b$15010
+
+
+
+
+, COMMA :
+		CAN BE MORE THAN ONE 
+		$$,$$$.99 		24.40 		bbb$24.40
+		$$,$$$.999 		0.019 		bbbbb$.019
+
+
+
+
+===NEVER USE IN SAME LINE===========================$    +    -    Z    * ======================================================
+
+===NEVER USE IN SAME LINE===========================+    -   DB   CR    S ======================================================
+
+============================================================================
+The REDEFINES clause cannot be used for the following:
+	• at the 01 level in the FILE SECTION 
+	• when the levels of data-name-1 and data-name-2 are different
+	• when the level number is 66 or 88
+
+=============================================================================
+
+
+
+
+JUSTIFIED 
+
+	Always used with receiving field
+	Used with only Alphanumeric and Alphabetic data movement
+	Declaration must be in working-storage section.
+	Example
+	– 77 P PIC A(5) VALUE ‘ HELLO’.
+	– 77 Q PIC A(10) JUSTIFIED RIGHT
+
+
+
+
+
+
+
+
+	66 = RENAMES
+	77 = SEPERATE /INDEP ELEMENTARY ITEMS
+	88 = CONDITIONAL ITEMS 	
+
+
+COMP1 = 4 BYTES
+COMP2 = 4 BYTES IN 2 LETERS / 2 BYTES IN ONE LETTER
+COMP3 = IN DECIMAL DIGITS HAVE 1/2 BYTES.
+
+
+
+
+
+
+
+*********************************INITIALIZE 
+
+01 EMP.
+05 EMP-NUM PIC 9(3).
+05 EMP-NAME PIC A(5).
+05 EMP-ADRS PIC X(7).
+05 EMP-SAL PIC 9(3).9(2).
+INITIALIZE EMP-NUM.
+INITIALIZE EMP-ADRS.
+INITIALIZE EMP.
+INITIALIZE EMP REPLACING NUMERIC DATA BY 123
+REPLACING ALPHABETIC DATA BY “JACOB”
+REPLACING ALPHANUMERIC DATA BY “ENGLAND”
+REPLACING NUMERIC-EDITED DATA BY 235.50

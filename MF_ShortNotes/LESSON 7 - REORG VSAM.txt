@@ -1,0 +1,138 @@
+--------------------------------REPRO AND BACKING VSAM
+
+
+REPRO :  **************************************IT IS NEW VERSION OF IEBGENER IN VSAM 
+	USED TO TRANSFER DATA BETWEEN NON VSAM AND VSAM 
+	AND BETWEEN TYPES OF VSAM DS
+
+
+USES  : 
+	LOADS EMPTY DS WITH DATA
+	BACK UPS VSAM
+	MERGES TWO DATASETS
+
+
+ADVANTAGE : 
+
+	ISAM CAN BE CONVERTED INTO VSAM 
+	PS TO VSAM - RECORD TRANSFER
+	IN KSDS , ESDS , RRDS THIER COMPOMENETS ARE BUILT AUTOPMATICALLY
+
+DISADVANTAGE : 
+	CATLG INFO NOT TRANSFERED
+	REDEFINION OF CLUSER TO BE MADE WHILE USED OR REUSE CAN BE CODED( when esds to ksds or rrds to ksds ) 
+
+
+SYNTAX  :
+
+		REPRO
+		INFILE (ddname) 		| 	INDATASET (dsname) -
+		OUTFILE (ddname)		| 	OUTDATASET (dsname) -
+
+
+
+
+PARAMTERES OF REPRO  :
+
+------------> FROMKEY – TOKEY
+		 USE OF PRIMARY KEY
+		 IN KSDS IS USED 
+
+ ------------> FROMADDRESS- TOADDRESS  /   FROM RBA TO RBA
+		 USE OF RECORD SIZE 
+		IF RECORDSIZE IS 80  AND CISZ IS 512 , THEN THE RECORDS CAN BE
+			1ST IN ( 0 79 )  , 
+			2ND RECORD IN (80 160) ,
+			 3RD IN (160 240) ,
+			 4TH IN (320 400), 5TH IN (480 ) , 
+			WHWERE AS IN 481 TO 512 IS UNUSED SPACE AND CONTROL FIELD 
+
+ ------------> FROMNUMBER-TONUMBER  
+		 USE OF RELATIVE RECORD NUMBER   AND USED IN RRDS
+
+
+ ------------>  SKIP,COUNT : TO SKIP SOME AND COPY THE NUMBER OF COUNT IN COUNT PRARAM 
+
+
+
+
+**********************************************BACKING UP DATASET 
+
+	INVLOVES THREE STEPS  :
+			DELETE , DEFINE , REPRO 
+
+
+
+
+BACKING UP EFFECTS : 
+
+	The dataset is reorganized, that is the control interval and control area splits are eliminated.
+	Free space is redistributed throughout the dataset, as specified in the FREESPACE Parameter.
+	Primary index is rebuilt, however the DELETE command deletes the base cluster as well as its indexes.
+	************************************ alternate indexes AIX have to be redefined. 
+
+
+REUSE IN REPRO : 
+		IF THE VSAM CLUSTER IS CREATED WID REUSE OPTION IT CAN ALSO BE USED IN REPRO 
+		IF VSAM DIDNT USE REUSE , THEN REPRO IGNORES IT 
+
+
+
+
+DELETE COMMANSDS USED IN :
+
+	FORCE|NOFORCE: FORCE allows an item to be deleted even if it is non-empty.
+	
+	PURGE|NOPURGE: PURGE allows an item to be deleted even if its expiration date has not arrived.
+	
+	SCRATCH|NOSCRATCH: SCRATCH scratches the non-VSAM datasets. NOSCRATCH  just un-catalogs the dataset.
+		UNLESS ERASE IS USED THE SCRATCH DELETES THE CATALOG INFOS ALONE 
+
+
+
+
+
+********************************************************REORGANIZATION OF KSDS CLUSTER 
+
+1.  Make a backup of the KSDS into a PS using REPRO command.
+2. Delete the KSDS with the AMS DELETE command.
+3. Define the KSDS using DEFINE CLUSTER command.
+4. Reload the KSDS from the backup file using the REPRO command
+
+
+REASON FOR REORG OF KSDS : 
+	IT IS DONE WHEN FREQUENT USE OF DS IS HAPPENING AND IT MAKES CA AND CI TO SPLIT 
+	WHEN CA SPLIT VALUE GOES TO 15 % OF CA VALUE REORGANIXATION HAS TO BE DONE ELSE , OUT OF SEQUENCE OR ERROR OCCURS 
+
+*****************************************************************************************************
+
+
+
+IMPORT AND EXPORT :
+
+	EMPORT / IMPORT has several advantages compared to REPRO
+		• Catalog information is exported along with data
+		• Cluster deletion and redefinition not required during import as input dataset already contains catalog information
+		• Easily ported on other systems as catalog information available with data
+		• Like REPRO KSDS datasets are reorganized however three steps of REPRO are replaced by one
+			
+	Disadvantages:
+		• Exported data cannot be processed until Imported
+		• Can be used only for VSAM dataset
+
+
+SYNTAX : 
+EXPORT MFCVT01.KSDS.CLUSTER
+OUTFILE(DD2)
+
+
+IMPORT INFILE (DD2)-
+OUTDATASET(MFCVT01.KSDS.CLUSTER)
+Imports only EXPORTED dataset
+
+
+*****************************************************************************************************
+
+
+
+
