@@ -1,0 +1,32 @@
+IGYCRCTL = TO COMPILE THE COBOL CODE 
+
+
+HEWL = TO RUN COBOL CODE 
+IEWL
+
+IKJEFT01 = USED IN DB2 BIND JOB 
+
+
+
+System Utlilites ---------------
+
+IEHPROGM = CAN ALSO USED TO SET A PASSWORD TO A DATASET
+IEHLIST
+IEHLIST
+
+
+Dataset Utilities ----------------
+iefbr14 = for ps and pds 
+iebgener = copy ps to another ps 
+iebcopy  = to copy member data values of pds 
+idcams 
+dfsort 
+
+
+TSO = TIME SHARING OPTION
+
+ISPF = INTERACTICE SYSTEM AND DISPLAY FACILITY 
+
+-----------------IDCAMS = INTERACTIVE DATA CLUSTER ACCESS METHOD SERVICES 
+
+GDG HAS GENERATIONS AND VERSION GaaaVnn  A = 000 to 999 and N  = 00 to 99 
