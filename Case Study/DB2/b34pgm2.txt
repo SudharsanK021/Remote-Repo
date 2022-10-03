@@ -1,0 +1,223 @@
+       IDENTIFICATION DIVISION.                                         00010000
+       PROGRAM-ID. B24PGM2.                                             00020000
+      **************************************                            00030003
+      * SCREEN NUMBER ONE = SUMMARY PAGE   *                            00040003
+      **************************************                            00050003
+       DATA DIVISION.                                                   00060000
+       WORKING-STORAGE SECTION.                                         00070000
+       01 WS-SQLCODE       PIC -9(08).                                  00070104
+      * SQL STATEMENTS                                                  00071000
+            EXEC SQL                                                    00072000
+                INCLUDE TABVAR                                          00073000
+            END-EXEC.                                                   00074000
+            EXEC SQL                                                    00075000
+                INCLUDE SQLCA                                           00076000
+            END-EXEC.                                                   00077000
+       COPY B24MPS1.                                                    00080000
+       COPY DFHAID.                                                     00090000
+       COPY DFHBMSCA.                                                   00100000
+       01 WS-UUID PIC 9(5).                                             00110000
+      *COPY USERREC.                                                    00120000
+       01   USERREC.                                                    00130000
+            05   U-IDD      PIC 9(15).                                  00140000
+            05   U-NAME     PIC A(30).                                  00150000
+            05   U-AGE      PIC 99.                                     00160000
+            05   U-GENDER   PIC A(10).                                  00170000
+            05   U-ADHAAR   PIC 9(10).                                  00180000
+            05   U-ADDRESS  PIC X(30).                                  00190000
+            05   U-STATE    PIC A(15).                                  00200000
+            05   U-CITY     PIC A(15).                                  00210000
+            05   U-MAILID   PIC X(15).                                  00220000
+            05   U-MOBILE   PIC 9(10).                                  00230000
+            05   U-STATUS   PIC A(09).                                  00240000
+            05   FILLER     PIC X(09).                                  00250000
+       01 WS-DATE  PIC S9(15) COMP-3.                                   00260000
+       01 WS-COMM.                                                      00270000
+          05 WS-ID  PIC 9(15) VALUE 0.                                  00280000
+          05 WS-DUMMY PIC 9 VALUE 0.                                    00290000
+       01 WS-SESS-END            PIC X(30) VALUE 'SESSION ENDED...'.    00300000
+       01 WS-SESS-END-LEN        PIC S9(4) COMP VALUE 30.               00310000
+       01 WS-RESP-VAR            PIC S9(8) COMP.                        00320000
+       01 USER-REC-LEN           PIC S9(4) COMP VALUE 170.              00330000
+       LINKAGE SECTION.                                                 00340000
+       01 DFHCOMMAREA.                                                  00350000
+          05 LN-ID           PIC 9(15).                                 00360000
+       PROCEDURE DIVISION.                                              00370000
+       MAIN.                                                            00380000
+      * INITIALIZING VARIABLES.                                         00390000
+            MOVE LOW-VALUES TO SC3MAPO.                                 00400000
+            MOVE DFHCOMMAREA TO WS-COMM.                                00410000
+            EVALUATE EIBCALEN                                           00420000
+                   WHEN 0                                               00430000
+                        PERFORM FIRST-MAP                               00440000
+                        PERFORM TEMPORARY-EXIT                          00450000
+                   WHEN 15                                              00460000
+                        PERFORM PREVIOUS-MAP                            00470000
+                   WHEN OTHER                                           00480000
+      *                 IF EIBCALEN = 16                                00490000
+                           MOVE DFHCOMMAREA TO WS-COMM                  00500000
+                           PERFORM OLD-MAP                              00510000
+                           PERFORM TEMPORARY-EXIT                       00520000
+      *                 END-IF                                          00530000
+            END-EVALUATE.                                               00540000
+        FIRST-MAP.                                                      00550000
+              PERFORM SEND-MAP.                                         00560000
+        OLD-MAP.                                                        00570000
+              PERFORM CHECK-AID.                                        00580000
+        SEND-MAP.                                                       00590000
+            PERFORM DT-PARA.                                            00600000
+      * DISPLAY VALUES                                                  00610000
+            EXEC CICS SEND                                              00620000
+                      MAP('SC3MAP')                                     00630000
+                      MAPSET('B24MPS1')                                 00640000
+                      ERASE                                             00650000
+            END-EXEC.                                                   00660000
+        RECEIVE-MAP.                                                    00670000
+      * HANDLE MAP-ERROR & GET VALUES                                   00680000
+            EXEC CICS RECEIVE                                           00690000
+                      MAP('SC3MAP')                                     00700000
+                      MAPSET('B24MPS1')                                 00710000
+                      NOHANDLE                                          00720000
+                      RESP(WS-RESP-VAR)                                 00730000
+            END-EXEC.                                                   00740000
+            EVALUATE WS-RESP-VAR                                        00750000
+                   WHEN DFHRESP(NORMAL)                                 00760000
+                        CONTINUE                                        00770000
+                   WHEN DFHRESP(MAPFAIL)                                00780000
+                        PERFORM MAP-ERR-PARA                            00790000
+                   WHEN OTHER                                           00800000
+                        PERFORM OTHER-MAP-ERR-PARA                      00810000
+            END-EVALUATE.                                               00820000
+        TEMPORARY-EXIT.                                                 00830000
+            EXEC CICS                                                   00840000
+                 RETURN                                                 00850000
+                 TRANSID('B242')                                        00860000
+                 COMMAREA(WS-COMM)                                      00870000
+            END-EXEC.                                                   00880000
+        PERMANENT-EXIT.                                                 00890000
+            EXEC CICS                                                   00900000
+                 RETURN                                                 00910000
+            END-EXEC.                                                   00920000
+        DT-PARA.                                                        00930000
+            EXEC CICS                                                   00940000
+                 ASKTIME                                                00950000
+                 ABSTIME(WS-DATE)                                       00960000
+            END-EXEC.                                                   00970000
+            EXEC CICS                                                   00980000
+                 FORMATTIME                                             00990000
+                 ABSTIME(WS-DATE)                                       01000000
+                 MMDDYYYY(DAT3O)                                        01010000
+                 DATESEP('/')                                           01020000
+            END-EXEC.                                                   01030000
+        CHECK-AID.                                                      01040000
+            EVALUATE EIBAID                                             01050000
+                   WHEN DFHENTER                                        01060000
+                        IF EIBCALEN = 15                                01070000
+                           PERFORM TEMPORARY-EXIT                       01080000
+                        ELSE                                            01090000
+                           PERFORM RECEIVE-MAP                          01100000
+                           PERFORM PROCESS-OPER                         01110000
+                           PERFORM SEND-MAP                             01120000
+                        END-IF                                          01130000
+                   WHEN DFHPF3                                          01131007
+                        MOVE -1 TO APID1L                               01132007
+                        MOVE LOW-VALUES TO SC3MAPO                      01133007
+                        PERFORM SEND-MAP                                01134007
+                   WHEN DFHPF12                                         01140000
+                        PERFORM GO-TO-PARA                              01150000
+      *                 PERFORM SEND-MESSAGE                            01160000
+      *                 PERFORM PERMANENT-EXIT                          01170000
+      *            WHEN DFHPF12                                         01180000
+      *                 MOVE LOW-VALUES TO SC3MAPO                      01190000
+      *                 PERFORM SEND-MAP                                01200000
+                   WHEN OTHER                                           01210000
+                        MOVE "INCORRECT PFKEY - PRESS THE CORRECT PFKEY"01220000
+                              TO MSG4O                                  01230000
+                        PERFORM SEND-MAP                                01240000
+            END-EVALUATE.                                               01250000
+        GO-TO-PARA.                                                     01260000
+                        EXEC CICS                                       01270000
+                             XCTL                                       01280000
+                             PROGRAM('B24PGM3')                         01290000
+                        END-EXEC.                                       01300000
+        SEND-MESSAGE.                                                   01310000
+             EXEC CICS                                                  01320000
+                  SEND                                                  01330000
+                  FROM (WS-SESS-END)                                    01340000
+                  LENGTH(WS-SESS-END-LEN)                               01350000
+                  ERASE                                                 01360000
+             END-EXEC.                                                  01370000
+      * MAIL FAILS ARE HANDLED HERE                                     01380000
+        MAP-ERR-PARA.                                                   01390000
+             MOVE "MAP FAIL HAS OCCURED......" TO MSG4O.                01400000
+             PERFORM SEND-MAP.                                          01410000
+        OTHER-MAP-ERR-PARA.                                             01420000
+             MOVE "OTHER ERR OCCURED.........." TO MSG4O.               01430000
+             PERFORM SEND-MAP.                                          01440000
+        PROCESS-OPER.                                                   01450000
+            IF APID1L = 0                                               01460000
+                 MOVE -1 TO APID1L                                      01470000
+                 MOVE "APPLICANT ID MUST BE ENTERED " TO MSG4O          01480000
+            ELSE                                                        01490000
+      *        IF WS-ID = 0                                             01500000
+      *           MOVE APID1I TO U-IDD                                  01510000
+                  MOVE APID1I TO HV-APPLICANTID                         01511000
+                  PERFORM READ-RECORD-PARA                              01520000
+      *        ELSE                                                     01530000
+      *           MOVE WS-ID TO U-IDD                                   01540000
+      *           PERFORM READ-RECORD-PARA                              01550000
+      *        END-IF                                                   01560000
+            END-IF.                                                     01570000
+        READ-RECORD-PARA.                                               01580000
+      *     EXEC CICS READ                                              01590000
+      *               FILE('B24FIL1')                                   01600000
+      *               RIDFLD(U-IDD)                                     01610000
+      *               INTO(USERREC)                                     01620000
+      *               LENGTH(USER-REC-LEN)                              01630000
+      *               RESP(WS-RESP-VAR)                                 01640000
+      *     END-EXEC.                                                   01650000
+            EXEC SQL                                                    01650100
+                 SELECT NAME,MAILID,MOBILE,STATUS                       01651000
+                 INTO :HV-NAME,:HV-MAILID,:HV-MOBILE,:HV-STATUS         01652000
+                 FROM DEMOLLR                                           01652101
+                 WHERE APPLICANTID = :HV-APPLICANTID                    01653000
+            END-EXEC.                                                   01654000
+            EVALUATE SQLCODE                                            01660000
+                     WHEN 0                                             01670000
+                          MOVE "RECORD FOUND" TO MSG4O                  01680000
+                          PERFORM TABLE-TO-SCREEN                       01690000
+                     WHEN 100                                           01700000
+                          MOVE "RECORD NOT FOUND" TO MSG4O              01710000
+                     WHEN OTHER                                         01740000
+                          MOVE SQLCODE TO WS-SQLCODE                    01750004
+                          MOVE WS-SQLCODE TO MSG4O                      01751004
+            END-EVALUATE.                                               01760000
+      **FILE-TO-SCREEN.                                                 01770000
+      **    UNSTRING U-NAME DELIMITED BY SPACE                          01780000
+      **           INTO NAME31O, NAME32O                                01790000
+      **    END-UNSTRING.                                               01800000
+      **    MOVE U-IDD TO WS-UUID.                                      01810000
+      **    MOVE WS-UUID TO APID3O.                                     01820000
+      **    MOVE U-STATUS TO STAT3O.                                    01830000
+      **    MOVE U-MAILID TO MAIL3O.                                    01840000
+      *     MOVE U-MOBILE TO MOB3O.                                     01850000
+        TABLE-TO-SCREEN.                                                01851002
+            UNSTRING HV-NAME DELIMITED BY SPACE                         01851100
+                   INTO NAME31O, NAME32O                                01851200
+            END-UNSTRING.                                               01851300
+            MOVE HV-APPLICANTID TO WS-UUID.                             01851400
+            MOVE WS-UUID TO APID3O.                                     01851500
+            MOVE HV-STATUS TO STAT3O.                                   01851600
+            MOVE HV-MAILID TO MAIL3O.                                   01851700
+            MOVE HV-MOBILE TO MOB3O.                                    01851800
+        PREVIOUS-MAP.                                                   01860000
+            PERFORM DT-PARA.                                            01870000
+      *     MOVE WS-ID TO U-IDD.                                        01880005
+            MOVE WS-ID TO APID1O.                                       01880106
+            MOVE DFHBMPRO TO APID1A.                                    01880206
+            MOVE WS-ID TO HV-APPLICANTID.                               01881005
+            PERFORM READ-RECORD-PARA.                                   01890000
+      *     MOVE HV-APPLICANTID TO APID1O.                              01900006
+            MOVE "APPLICATION SUBMITTED SUCCESSFULLY" TO MSG4O.         01920000
+      *     PERFORM CHECK-AID.                                          01930000
+

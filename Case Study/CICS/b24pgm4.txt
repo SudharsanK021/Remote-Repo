@@ -1,0 +1,540 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. B24PGM4.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       COPY USERREC.
+       COPY DFHAID.
+       COPY B24MPS1.
+      * MOVING TO NEXT SCREEN
+       01 TRANS-APID    PIC 9(15).
+      ****************************
+       01 WS-DATE PIC S9(15) COMP-3.
+       01 WS-COMM.
+          05 WS-CNT PIC 9 VALUE 0.
+       01 WS-SESS-END           PIC X(30) VALUE 'SESSION ENDED'.
+       01 WS-SESS-END-LEN          PIC S9(4) COMP VALUE 30.
+       01 WS-RESP-VAR           PIC S9(8) COMP.
+       01 VALID-DATA PIC X VALUE 'Y'.
+          88 88-DATA-CHECK      VALUE 'Y'.
+       01 WS-APPID             PIC 9(15).
+       01 USERREC-LEN           PIC S9(4) COMP VALUE 170.
+      * MOB  COUNT VARIABLE
+       01 WS-MOB   PIC 9(10) VALUE 0.
+      * ADHA COUNT VARIABLE
+       01 WS-ADHAR PIC 9(10) VALUE 0.
+      * MAIL DUP   VARIABLE
+       01 WS-MAIL  PIC X(15).
+      * MAIL COUNT VARIABLE
+       01 MAIL-CNT PIC 9 VALUE 0.
+      *01 WS-MAIL  PIC X(15).
+       PROCEDURE DIVISION.
+       MAIN-PARA.
+            MOVE LOW-VALUES TO SC2MAPO.
+            EVALUATE EIBCALEN
+                     WHEN 0
+                          PERFORM FIRST-MAP
+                     WHEN OTHER
+                          PERFORM OLD-MAP
+            END-EVALUATE.
+            PERFORM TEMPORARY-EXIT.
+        FIRST-MAP.
+                 MOVE -1 TO NAME2L.
+                 PERFORM SEND-MAP.
+      *          PERFORM TEMPORARY-EXIT.
+        OLD-MAP.
+                 MOVE -1 TO NAME2L.
+                 PERFORM CHECK-AID.
+        SEND-MAP.
+            PERFORM DT-PARA.
+            EXEC CICS SEND
+                      MAP('SC2MAP')
+                      MAPSET('B24MPS1')
+                      CURSOR
+                      ERASE
+            END-EXEC.
+        RECEIVE-MAP.
+            EXEC CICS RECEIVE
+                      MAP('SC2MAP')
+                      MAPSET('B24MPS1')
+                      NOHANDLE
+                      RESP(WS-RESP-VAR)
+            END-EXEC.
+            EVALUATE WS-RESP-VAR
+                   WHEN DFHRESP(NORMAL)
+                        CONTINUE
+                   WHEN DFHRESP(MAPFAIL)
+                        PERFORM MAP-ERR-PARA
+                   WHEN OTHER
+                        PERFORM OTHER-MAP-ERR-PARA
+            END-EVALUATE.
+        TEMPORARY-EXIT.
+                 EXEC CICS
+                      RETURN
+                      TRANSID('B244')
+                      COMMAREA(WS-COMM)
+                 END-EXEC.
+        PERMANENT-EXIT.
+                 EXEC CICS
+                      RETURN
+                 END-EXEC.
+        DT-PARA.
+            EXEC CICS
+                 ASKTIME
+                 ABSTIME(WS-DATE)
+            END-EXEC.
+            EXEC CICS
+                 FORMATTIME
+                 ABSTIME(WS-DATE)
+                 MMDDYYYY(DAT2O)
+                 DATESEP('/')
+            END-EXEC.
+        CHECK-AID.
+              EVALUATE EIBAID
+                   WHEN DFHENTER
+                        PERFORM RECEIVE-MAP
+                        PERFORM PROCESS-PARA
+                        PERFORM SEND-MAP
+      *            WHEN DFHPF4
+      *                 PERFORM SEND-MESSAGE
+      *                 PERFORM PERMANENT-EXIT
+                   WHEN DFHPF3
+      *                 PERFORM SEND-MESSAGE
+      *                 PERFORM PERMANENT-EXIT
+      *                  MOVE LOW-VALUES TO WS-COMM
+                        PERFORM GO-TO-PARA
+                   WHEN DFHPF12
+                        MOVE -1 TO NAME2L
+                        MOVE LOW-VALUES TO SC2MAPO
+                        PERFORM SEND-MAP
+      *                 PERFORM TEMPORARY-EXIT
+                   WHEN OTHER
+                        MOVE "INCORRECT PFKEY - PRESS THE CORRECT PFKEY"
+                             TO MSG3O
+                        PERFORM SEND-MAP
+      *                 PERFORM TEMPORARY-EXIT
+              END-EVALUATE.
+        GO-TO-PARA.
+                        EXEC CICS
+                             XCTL
+                             PROGRAM('B24PGM3')
+                        END-EXEC.
+        PROCESS-PARA.
+            PERFORM VALID-CHECK.
+        VALID-CHECK.
+            IF CITY2L = 0
+               MOVE -1 TO CITY2L
+               MOVE "CITY FIELD MUST BE ENTERED" TO MSG3O
+               MOVE 'N' TO VALID-DATA
+            ELSE
+               IF CITY2I IS ALPHABETIC
+                  NEXT SENTENCE
+               ELSE
+                  MOVE -1 TO CITY2L
+                  MOVE "CITY FIELD CANT BE NUMERIC" TO MSG3O
+                  MOVE 'N' TO VALID-DATA
+               END-IF
+            END-IF.
+            IF STATE2L = 0
+               MOVE -1 TO STATE2L
+               MOVE "STATE FIELD MUST BE ENTERED" TO MSG3O
+               MOVE 'N' TO VALID-DATA
+            ELSE
+               IF STATE2I IS ALPHABETIC
+                  NEXT SENTENCE
+               ELSE
+                  MOVE -1 TO STATE2L
+                  MOVE "STATE FIELD CANT BE NUMERIC" TO MSG3O
+                  MOVE 'N' TO VALID-DATA
+               END-IF
+            END-IF.
+            IF ADDR2L = 0
+               MOVE -1 TO ADDR2L
+               MOVE "ADDRESS FIELD MUST BE ENTERED" TO MSG3O
+               MOVE 'N' TO VALID-DATA
+            ELSE
+               IF ADDR2I IS NOT ALPHABETIC AND ADDR2I IS NOT NUMERIC
+                  NEXT SENTENCE
+               ELSE
+                  MOVE -1 TO ADDR2L
+                  MOVE "ADDRESS FIELD CANT BE NUMERIC" TO MSG3O
+                  MOVE 'N' TO VALID-DATA
+               END-IF
+            END-IF.
+            IF AADHR2L = 0
+               MOVE -1 TO AADHR2L
+               MOVE "ADHAAR  FIELD MUST BE ENTERED" TO MSG3O
+               MOVE 'N' TO VALID-DATA
+            ELSE
+               IF AADHR2I IS NUMERIC
+                  NEXT SENTENCE
+               ELSE
+                  MOVE -1 TO AADHR2L
+                  MOVE "ADHAAR  FIELD CANT BE ALPHABETIC" TO MSG3O
+                  MOVE 'N' TO VALID-DATA
+               END-IF
+            END-IF.
+            IF AGE2L = 0
+               MOVE -1 TO AGE2L
+               MOVE "AGE FIELD MUST BE ENTERED" TO MSG3O
+               MOVE 'N' TO VALID-DATA
+            ELSE
+               IF AGE2I IS NUMERIC
+                  IF AGE2I <= 17
+                     MOVE -1 TO AGE2L
+                     MOVE "VALID AGE FOR LLR IS GREATER THAN 17"
+                          TO MSG3O
+                     MOVE 'N' TO VALID-DATA
+      *           ELSE
+      *              NEXT SENTENCE
+                  END-IF
+                  IF AGE2I > 49
+                     MOVE -1 TO AGE2L
+                     MOVE "VALID AGE FOR LLR LESS THAN 50"
+                          TO MSG3O
+                     MOVE 'N' TO VALID-DATA
+      *           ELSE
+      *              NEXT SENTENCE
+                  END-IF
+               ELSE
+                  MOVE -1 TO AGE2L
+                  MOVE "AGE FIELD CANT BE ALPHABETIC" TO MSG3O
+                  MOVE 'N' TO VALID-DATA
+               END-IF
+            END-IF.
+            IF MOB2L = 0
+               MOVE -1 TO MOB2L
+               MOVE "MOB NO FIELD MUST BE ENTERED" TO MSG3O
+               MOVE 'N' TO VALID-DATA
+            ELSE
+               IF MOB2I IS NUMERIC
+                  IF MOB2L < 10
+      *              MOVE LOW-VALUES TO MOB2A
+                     MOVE -1 TO MOB2L
+                     MOVE "VALID MOBILE NUMBER LENGTH MUST BE 10"
+                                TO MSG3O
+                     MOVE 'N' TO VALID-DATA
+                  ELSE
+                     NEXT SENTENCE
+                  END-IF
+               ELSE
+                  MOVE -1 TO MOB2L
+                  MOVE "MOB NO FIELD CANT BE ALPHABETIC" TO MSG3O
+                  MOVE 'N' TO VALID-DATA
+               END-IF
+            END-IF.
+            IF MAIL2L = 0
+               MOVE -1 TO MAIL2L
+               MOVE "MAIL FIELD MUST BE ENTERED" TO MSG3O
+               MOVE 'N' TO VALID-DATA
+            ELSE
+               IF  MAIL2I IS NOT ALPHABETIC AND MAIL2I IS NOT NUMERIC
+                  INSPECT MAIL2I TALLYING MAIL-CNT FOR ALL '@'
+                  IF MAIL-CNT IS NOT = 1
+                     MOVE -1 TO MAIL2L
+                     MOVE "THERE MUST BE ATLEAST ONE '@' FOR VALID MAIL"
+                     TO MSG3O
+                     MOVE 'N' TO VALID-DATA
+                  END-IF
+                  IF MAIL-CNT IS > 1
+                     MOVE -1 TO MAIL2L
+                     MOVE "MORE THAN TWO @ OCCURANCE IS INVALID IN MAIL"
+                     TO MSG3O
+                     MOVE 'N' TO VALID-DATA
+                  END-IF
+      *           NEXT SENTENCE
+      *           INSPECT MAIL2I TALLYING MAIL-CNT FOR ALL '@'
+      *           IF MAIL-CNT IS NOT = 1 OR MAIL-CNT IS > 1
+      *              MOVE -1 TO MAIL2L
+      *              MOVE "MORE THAN TWO @ OCCURANCE IS INVALID IN MAIL"
+      *              TO MSG3O
+      *              MOVE 'N' TO VALID-DATA
+      *           END-IF
+               ELSE
+                  MOVE -1 TO MAIL2L
+                  MOVE "MAIL FIELD MUST BE ALPHANUMERIC" TO MSG3O
+                  MOVE 'N' TO VALID-DATA
+               END-IF
+            END-IF.
+            IF GEND2L = 0
+               MOVE -1 TO GEND2L
+               MOVE "GENDER FIELD MUST BE ENTERED" TO MSG3O
+               MOVE 'N' TO VALID-DATA
+            ELSE
+               IF GEND2I IS ALPHABETIC
+                  IF ( GEND2I = "MALE" ) OR ( GEND2I = "FEMALE" )
+                          OR ( GEND2I = "OTHERS" )
+                     NEXT SENTENCE
+                  ELSE
+                     MOVE -1 TO GEND2L
+                     MOVE "ENTER VALID GENDER VALUE" TO MSG3O
+                     MOVE 'N' TO VALID-DATA
+                  END-IF
+               ELSE
+                  MOVE -1 TO GEND2L
+                  MOVE "GENDER FIELD CANT BE NUMERIC" TO MSG3O
+                  MOVE 'N' TO VALID-DATA
+               END-IF
+            END-IF.
+            IF NAME2L = 0
+               MOVE -1 TO NAME2L
+               MOVE "NAME FIELD MUST BE ENTERED" TO MSG3O
+               MOVE 'N' TO VALID-DATA
+            ELSE
+               IF NAME2I IS ALPHABETIC
+                  NEXT SENTENCE
+               ELSE
+                  MOVE -1 TO NAME2L
+                  MOVE "NAME FIELD CANT BE NUMERIC" TO MSG3O
+                  MOVE 'N' TO VALID-DATA
+               END-IF
+            END-IF.
+            IF 88-DATA-CHECK
+               PERFORM MAIL-BROWSE-PARA
+            END-IF.
+            IF 88-DATA-CHECK
+               PERFORM MOBILE-FILE-PARA
+            END-IF.
+            IF 88-DATA-CHECK
+               PERFORM ADHAAR-BROWSE-PARA
+            END-IF.
+            IF 88-DATA-CHECK
+               PERFORM READ-FIRST-PARA
+               PERFORM WRITE-TO-FILE
+               MOVE "PERFECT DATA CHECK" TO MSG3O
+            END-IF.
+        SEND-MESSAGE.
+             EXEC CICS
+                  SEND
+                  FROM (WS-SESS-END)
+                  LENGTH(WS-SESS-END-LEN)
+                  ERASE
+             END-EXEC.
+        MAP-ERR-PARA.
+            MOVE "FIELDS CANNOT BE LEFT BLANK-MAP FAIL OCCURD" TO MSG3O.
+            PERFORM SEND-MAP.
+      *     PERFORM TEMPORARY-EXIT.
+        OTHER-MAP-ERR-PARA.
+            MOVE "FIELDS CANNOT BE LEFT BLANK" TO MSG3O.
+            PERFORM SEND-MAP.
+      *     PERFORM TEMPORARY-EXIT.
+        WRITE-TO-FILE.
+           PERFORM MAP-TO-FILE.
+           EXEC CICS
+                WRITE
+                FILE('B24FIL1')
+                RIDFLD(U-IDD)
+                FROM(USERREC)
+                LENGTH(USERREC-LEN)
+                RESP(WS-RESP-VAR)
+           END-EXEC.
+                EVALUATE WS-RESP-VAR
+                         WHEN DFHRESP(NORMAL)
+                              PERFORM TRANSFER-PARA
+                              MOVE "DONE" TO MSG3O
+                         WHEN OTHER
+                              MOVE "WRITE ERR" TO MSG3O
+                END-EVALUATE.
+        MAP-TO-FILE.
+              MOVE WS-APPID          TO U-IDD.
+              MOVE NAME2O            TO U-NAME.
+              MOVE GEND2O            TO U-GENDER.
+              MOVE MAIL2O            TO U-MAILID.
+              MOVE MOB2O             TO U-MOBILE.
+              MOVE AGE2O             TO U-AGE
+              MOVE AADHR2O           TO U-ADHAAR.
+              MOVE ADDR2O            TO U-ADDRESS.
+              MOVE STATE2O           TO U-STATE.
+              MOVE CITY2O            TO U-CITY.
+              MOVE "SUBMITTED"       TO U-STATUS.
+        READ-FIRST-PARA.
+              MOVE HIGH-VALUES TO USERREC.
+              EXEC CICS STARTBR
+                        FILE('B24FIL1')
+                        RIDFLD(U-IDD)
+                        GTEQ
+                        RESP(WS-RESP-VAR)
+              END-EXEC.
+              EVALUATE WS-RESP-VAR
+                       WHEN DFHRESP(NORMAL)
+                            MOVE "SUCCESS BROWSE" TO MSG3O
+                            PERFORM READ-FROM-FILE
+                       WHEN OTHER
+                            MOVE "ERROR WHILE BROWSING" TO MSG3O
+              END-EVALUATE.
+        READ-FROM-FILE.
+              EXEC CICS READPREV
+                   FILE('B24FIL1')
+                   INTO(USERREC)
+                   RIDFLD(U-IDD)
+                   RESP(WS-RESP-VAR)
+                   LENGTH(USERREC-LEN)
+              END-EXEC.
+              EVALUATE WS-RESP-VAR
+                       WHEN DFHRESP(NORMAL)
+                            MOVE "READPREV DONE " TO MSG3O
+                            PERFORM INCREMENT-KEY
+                            EXEC CICS ENDBR
+                            FILE('B24FIL1')
+                            END-EXEC
+                       WHEN OTHER
+                            MOVE "ERROR WHILE READ PREVIOUS" TO MSG3O
+              END-EVALUATE.
+        INCREMENT-KEY.
+              MOVE U-IDD TO WS-APPID.
+              COMPUTE WS-APPID = WS-APPID + 1.
+      **      MOVE  WS-APPID  TO MSG3O.
+        TRANSFER-PARA.
+               MOVE WS-APPID TO TRANS-APID.
+               EXEC CICS
+                    XCTL
+                    PROGRAM('B24PGM2')
+                    COMMAREA(TRANS-APID)
+               END-EXEC.
+        MOBILE-FILE-PARA.
+           MOVE LOW-VALUES TO USERREC.
+           EXEC CICS STARTBR
+                FILE('B24FIL1')
+                RIDFLD(U-IDD)
+                RESP(WS-RESP-VAR)
+                GTEQ
+           END-EXEC.
+           EVALUATE WS-RESP-VAR
+                    WHEN DFHRESP(NORMAL)
+                         PERFORM READ-SEQ
+      *                       UNTIL (WS-RESP-VAR = DFHRESP(ENDFILE))
+                              UNTIL U-MOBILE = MOB2I
+                         MOVE "MOBILE NUMBER ALREADY EXISTS" TO MSG3O
+                    WHEN OTHER
+                         MOVE "ERROR OCCURED IN BROWSING" TO MSG3O
+           END-EVALUATE.
+        READ-SEQ.
+           EXEC CICS READNEXT
+                FILE('B24FIL1')
+                INTO(USERREC)
+                RIDFLD(U-IDD)
+                RESP(WS-RESP-VAR)
+                LENGTH(USERREC-LEN)
+           END-EXEC.
+           EVALUATE WS-RESP-VAR
+                    WHEN DFHRESP(NORMAL)
+      *                  PERFORM MAP-2-FILE-TRANSFER
+                         MOVE U-MOBILE TO WS-MOB
+                         IF WS-MOB  = MOB2I
+                            EXEC CICS ENDBR
+                            FILE('B24FIL1')
+                            END-EXEC
+                            MOVE -1 TO MOB2L
+      *                     MOVE -1 TO MOB2L
+                            MOVE 'N' TO VALID-DATA
+                            MOVE "MOBILE NUMBER ALREADY EXISTS" TO MSG3O
+                         ELSE
+                            CONTINUE
+                         END-IF
+                    WHEN DFHRESP(ENDFILE)
+                            EXEC CICS ENDBR
+                            FILE('B24FIL1')
+                            END-EXEC
+                            MOVE MOB2I TO U-MOBILE
+                    WHEN OTHER
+                         MOVE "ERROR OCCURED IN LAST REC READ" TO MSG3O
+           END-EVALUATE.
+        ADHAAR-BROWSE-PARA.
+           MOVE LOW-VALUES TO USERREC.
+           EXEC CICS STARTBR
+                FILE('B24FIL1')
+                RIDFLD(U-IDD)
+                RESP(WS-RESP-VAR)
+                GTEQ
+           END-EXEC.
+           EVALUATE WS-RESP-VAR
+                    WHEN DFHRESP(NORMAL)
+                         PERFORM READ-SEQQ
+      *                       UNTIL (WS-RESP-VAR = DFHRESP(ENDFILE))
+                              UNTIL U-ADHAAR = AADHR2I
+                         MOVE "ADHAAR NUMBER ALREADY EXISTS" TO MSG3O
+                    WHEN OTHER
+                         MOVE "ERROR OCCURED IN BROWSING" TO MSG3O
+           END-EVALUATE.
+        READ-SEQQ.
+           EXEC CICS READNEXT
+                FILE('B24FIL1')
+                INTO(USERREC)
+                RIDFLD(U-IDD)
+                RESP(WS-RESP-VAR)
+                LENGTH(USERREC-LEN)
+           END-EXEC.
+           EVALUATE WS-RESP-VAR
+                    WHEN DFHRESP(NORMAL)
+      *                  PERFORM MAP-2-FILE-TRANSFER
+                         MOVE U-ADHAAR TO WS-ADHAR
+                         IF WS-ADHAR = AADHR2I
+                            EXEC CICS ENDBR
+                            FILE('B24FIL1')
+                            END-EXEC
+                            MOVE -1 TO AADHR2L
+      *                     MOVE -1 TO MOB2L
+                            MOVE 'N' TO VALID-DATA
+                            MOVE "ADHAAR NUMBER ALREADY EXISTS" TO MSG3O
+                         ELSE
+                            CONTINUE
+                         END-IF
+                    WHEN DFHRESP(ENDFILE)
+                            EXEC CICS ENDBR
+                            FILE('B24FIL1')
+                            END-EXEC
+                            MOVE AADHR2I TO U-ADHAAR
+                    WHEN OTHER
+                         MOVE "ERROR OCCURED IN LAST REC READ" TO MSG3O
+           END-EVALUATE.
+        MAIL-BROWSE-PARA.
+           MOVE LOW-VALUES TO USERREC.
+           EXEC CICS STARTBR
+                FILE('B24FIL1')
+                RIDFLD(U-IDD)
+                RESP(WS-RESP-VAR)
+                GTEQ
+           END-EXEC.
+           EVALUATE WS-RESP-VAR
+                    WHEN DFHRESP(NORMAL)
+                         PERFORM READ-SEQM
+      *                       UNTIL (WS-RESP-VAR = DFHRESP(ENDFILE))
+                              UNTIL U-MAILID = MAIL2I
+                         MOVE "MAILID NUMBER ALREADY EXISTS" TO MSG3O
+                    WHEN OTHER
+                         MOVE "ERROR OCCURED IN BROWSING" TO MSG3O
+           END-EVALUATE.
+        READ-SEQM.
+           EXEC CICS READNEXT
+                FILE('B24FIL1')
+                INTO(USERREC)
+                RIDFLD(U-IDD)
+                RESP(WS-RESP-VAR)
+                LENGTH(USERREC-LEN)
+           END-EXEC.
+           EVALUATE WS-RESP-VAR
+                    WHEN DFHRESP(NORMAL)
+      *                  PERFORM MAP-2-FILE-TRANSFER
+      *                  IF U-STATUS = "SUBMITTED"
+                            MOVE U-MAILID TO WS-MAIL
+                            IF WS-MAIL  = MAIL2I
+                               EXEC CICS ENDBR
+                               FILE('B24FIL1')
+                               END-EXEC
+                               MOVE -1 TO MAIL2L
+      *                        MOVE -1 TO MOB2L
+                               MOVE 'N' TO VALID-DATA
+                               MOVE "MAILID NUMBER ALREADY EXISTS"
+                                   TO MSG3O
+                            ELSE
+                               CONTINUE
+                            END-IF
+      *                  END-IF
+                    WHEN DFHRESP(ENDFILE)
+                            EXEC CICS ENDBR
+                            FILE('B24FIL1')
+                            END-EXEC
+                            MOVE MAIL2I TO U-MAILID
+                    WHEN OTHER
+                         MOVE "ERROR OCCURED IN LAST REC READ" TO MSG3O
+           END-EVALUATE.
+

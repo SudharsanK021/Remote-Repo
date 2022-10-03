@@ -1,0 +1,198 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. B24PGM2.
+      **********************************
+      * SCREEN NUMBER ONE = SC3MAP     *
+      **********************************
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       COPY B24MPS1.
+       COPY DFHAID.
+       COPY DFHBMSCA.
+       01 WS-UUID PIC 9(5).
+      *COPY USERREC.
+       01   USERREC.
+            05   U-IDD      PIC 9(15).
+            05   U-NAME     PIC A(30).
+            05   U-AGE      PIC 99.
+            05   U-GENDER   PIC A(10).
+            05   U-ADHAAR   PIC 9(10).
+            05   U-ADDRESS  PIC X(30).
+            05   U-STATE    PIC A(15).
+            05   U-CITY     PIC A(15).
+            05   U-MAILID   PIC X(15).
+            05   U-MOBILE   PIC 9(10).
+            05   U-STATUS   PIC A(09).
+            05   FILLER     PIC X(09).
+       01 WS-DATE  PIC S9(15) COMP-3.
+       01 WS-COMM.
+          05 WS-ID  PIC 9(15) VALUE 0.
+          05 WS-DUMMY PIC 9 VALUE 0.
+       01 WS-SESS-END            PIC X(30) VALUE 'SESSION ENDED...'.
+       01 WS-SESS-END-LEN        PIC S9(4) COMP VALUE 30.
+       01 WS-RESP-VAR            PIC S9(8) COMP.
+       01 USER-REC-LEN           PIC S9(4) COMP VALUE 170.
+       LINKAGE SECTION.
+       01 DFHCOMMAREA.
+          05 LN-ID           PIC 9(15).
+       PROCEDURE DIVISION.
+       MAIN.
+      * INITIALIZING VARIABLES.
+            MOVE LOW-VALUES TO SC3MAPO.
+            MOVE DFHCOMMAREA TO WS-COMM.
+            EVALUATE EIBCALEN
+                   WHEN 0
+                        PERFORM FIRST-MAP
+                        PERFORM TEMPORARY-EXIT
+                   WHEN 15
+                        PERFORM PREVIOUS-MAP
+                   WHEN OTHER
+      *                 IF EIBCALEN = 16
+                           MOVE DFHCOMMAREA TO WS-COMM
+                           PERFORM OLD-MAP
+                           PERFORM TEMPORARY-EXIT
+      *                 END-IF
+            END-EVALUATE.
+        FIRST-MAP.
+              PERFORM SEND-MAP.
+        OLD-MAP.
+              PERFORM CHECK-AID.
+        SEND-MAP.
+            PERFORM DT-PARA.
+      * DISPLAY VALUES
+            EXEC CICS SEND
+                      MAP('SC3MAP')
+                      MAPSET('B24MPS1')
+                      ERASE
+            END-EXEC.
+        RECEIVE-MAP.
+      * HANDLE MAP-ERROR & GET VALUES
+            EXEC CICS RECEIVE
+                      MAP('SC3MAP')
+                      MAPSET('B24MPS1')
+                      NOHANDLE
+                      RESP(WS-RESP-VAR)
+            END-EXEC.
+            EVALUATE WS-RESP-VAR
+                   WHEN DFHRESP(NORMAL)
+                        CONTINUE
+                   WHEN DFHRESP(MAPFAIL)
+                        PERFORM MAP-ERR-PARA
+                   WHEN OTHER
+                        PERFORM OTHER-MAP-ERR-PARA
+            END-EVALUATE.
+        TEMPORARY-EXIT.
+            EXEC CICS
+                 RETURN
+                 TRANSID('B242')
+                 COMMAREA(WS-COMM)
+            END-EXEC.
+        PERMANENT-EXIT.
+            EXEC CICS
+                 RETURN
+            END-EXEC.
+        DT-PARA.
+            EXEC CICS
+                 ASKTIME
+                 ABSTIME(WS-DATE)
+            END-EXEC.
+            EXEC CICS
+                 FORMATTIME
+                 ABSTIME(WS-DATE)
+                 MMDDYYYY(DAT3O)
+                 DATESEP('/')
+            END-EXEC.
+        CHECK-AID.
+            EVALUATE EIBAID
+                   WHEN DFHENTER
+                        IF EIBCALEN = 15
+                           PERFORM TEMPORARY-EXIT
+                        ELSE
+                           PERFORM RECEIVE-MAP
+                           PERFORM PROCESS-OPER
+                           PERFORM SEND-MAP
+                        END-IF
+                   WHEN DFHPF3
+                        MOVE -1 TO APID1L
+                        MOVE LOW-VALUES TO SC3MAPO
+                        PERFORM SEND-MAP
+                   WHEN DFHPF12
+                        PERFORM GO-TO-PARA
+      *                 PERFORM SEND-MESSAGE
+      *                 PERFORM PERMANENT-EXIT
+      *            WHEN DFHPF12
+      *                 MOVE LOW-VALUES TO SC3MAPO
+      *                 PERFORM SEND-MAP
+                   WHEN OTHER
+                        MOVE "INCORRECT PFKEY - PRESS THE CORRECT PFKEY"
+                              TO MSG4O
+                        PERFORM SEND-MAP
+            END-EVALUATE.
+        GO-TO-PARA.
+                        EXEC CICS
+                             XCTL
+                             PROGRAM('B24PGM3')
+                        END-EXEC.
+        SEND-MESSAGE.
+             EXEC CICS
+                  SEND
+                  FROM (WS-SESS-END)
+                  LENGTH(WS-SESS-END-LEN)
+                  ERASE
+             END-EXEC.
+      * MAIL FAILS ARE HANDLED HERE
+        MAP-ERR-PARA.
+             MOVE "MAP FAIL HAS OCCURED......" TO MSG4O.
+             PERFORM SEND-MAP.
+        OTHER-MAP-ERR-PARA.
+             MOVE "OTHER ERR OCCURED.........." TO MSG4O.
+             PERFORM SEND-MAP.
+        PROCESS-OPER.
+            IF APID1L = 0
+                 MOVE -1 TO APID1L
+                 MOVE "APPLICANT ID MUST BE ENTERED " TO MSG4O
+            ELSE
+      *        IF WS-ID = 0
+                  MOVE APID1I TO U-IDD
+                  PERFORM READ-RECORD-PARA
+      *        ELSE
+      *           MOVE WS-ID TO U-IDD
+      *           PERFORM READ-RECORD-PARA
+      *        END-IF
+            END-IF.
+        READ-RECORD-PARA.
+            EXEC CICS READ
+                      FILE('B24FIL1')
+                      RIDFLD(U-IDD)
+                      INTO(USERREC)
+                      LENGTH(USER-REC-LEN)
+                      RESP(WS-RESP-VAR)
+            END-EXEC.
+            EVALUATE WS-RESP-VAR
+                     WHEN DFHRESP(NORMAL)
+                          MOVE "RECORD FOUND" TO MSG4O
+                          PERFORM FILE-TO-SCREEN
+                     WHEN DFHRESP(NOTFND)
+                          MOVE "RECORD NOT FOUND" TO MSG4O
+                     WHEN DFHRESP(NOTOPEN)
+                          MOVE "FILE NOT OPEN" TO MSG4O
+                     WHEN OTHER
+                          MOVE "OTHER FILE ERROR" TO MSG4O
+            END-EVALUATE.
+        FILE-TO-SCREEN.
+            UNSTRING U-NAME DELIMITED BY SPACE
+                   INTO NAME31O, NAME32O
+            END-UNSTRING.
+            MOVE U-IDD TO WS-UUID.
+            MOVE WS-UUID TO APID3O.
+            MOVE U-STATUS TO STAT3O.
+            MOVE U-MAILID TO MAIL3O.
+            MOVE U-MOBILE TO MOB3O.
+        PREVIOUS-MAP.
+            PERFORM DT-PARA.
+            MOVE WS-ID TO U-IDD.
+            PERFORM READ-RECORD-PARA.
+            MOVE U-IDD TO APID1O.
+            MOVE DFHBMPRO TO APID1A.
+            MOVE "APPLICATION SUBMITTED SUCCESSFULLY" TO MSG4O.
+      *     PERFORM CHECK-AID.
+

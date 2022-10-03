@@ -1,0 +1,192 @@
+B24MPS1  DFHMSD TYPE=&SYSPARM,MODE=INOUT,CTRL=FREEKB,                  X00010000
+               LANG=COBOL,TIOAPFX=YES,                                 X00020000
+               DSATTS=(COLOR,HILIGHT),                                 X00030000
+               MAPATTS=(COLOR,HILIGHT),                                X00040000
+               STORAGE=AUTO                                             00050000
+SC1MAP   DFHMDI SIZE=(24,80)                                            00262099
+         DFHMDF POS=(01,20),LENGTH=26,ATTRB=ASKIP,COLOR=BLUE,          X00263050
+               INITIAL='E-SERVICE TRANSPORT PORTAL'                     00264000
+         DFHMDF POS=(01,60),LENGTH=6,ATTRB=ASKIP,COLOR=BLUE,           X00265051
+               INITIAL='DATE :'                                         00266000
+DATT     DFHMDF POS=(01,67),LENGTH=10,ATTRB=ASKIP,COLOR=RED,           X00267046
+               INITIAL='MM/DD/YYYY'                                     00268000
+         DFHMDF POS=(03,20),LENGTH=20,ATTRB=ASKIP,COLOR=YELLOW,        X00269046
+               INITIAL='MAIN MENU SCREEN'                               00269100
+         DFHMDF POS=(05,11),LENGTH=18,ATTRB=ASKIP,                     X00269248
+               INITIAL='ENTER THE OPTION: '                             00269351
+OPT      DFHMDF POS=(05,31),LENGTH=1,ATTRB=(IC,UNPROT,NUM),            X00269440
+               HILIGHT=UNDERLINE,PICIN='9',PICOUT='9',                 X00269586
+               COLOR=TURQUOISE                                          00269668
+         DFHMDF POS=(05,33),LENGTH=1,ATTRB=ASKIP                        00269702
+         DFHMDF POS=(08,20),LENGTH=20,ATTRB=PROT,                      X00269848
+               INITIAL='1. APPLY LLR'                                   00269900
+         DFHMDF POS=(09,20),LENGTH=20,ATTRB=PROT,                      X00270048
+               INITIAL='2. VIEW STATUS'                                 00270100
+         DFHMDF POS=(10,20),LENGTH=20,ATTRB=PROT,                      X00270248
+               INITIAL='3. CANCEL REQUEST'                              00270300
+MSG2     DFHMDF POS=(15,02),LENGTH=67,ATTRB=PROT,COLOR=YELLOW,         X00270403
+               INITIAL='MSGS WILL BE DISPLAYED',HILIGHT=BLINK           00270502
+         DFHMDF POS=(16,02),LENGTH=40,ATTRB=PROT,COLOR=TURQUOISE,      X00270646
+               INITIAL='------------------------------'                 00270746
+         DFHMDF POS=(18,02),LENGTH=40,ATTRB=PROT,COLOR=GREEN,          X00270848
+               INITIAL='PF2-NEXT  PF3-EXIT PF12-CLEAR'                  00270902
+SC2MAP   DFHMDI SIZE=(24,80)                                            00271703
+         DFHMDF POS=(01,20),LENGTH=26,ATTRB=ASKIP,COLOR=BLUE,          X00271848
+               INITIAL='E-SERVICE TRANSPORT PORTAL'                     00271903
+         DFHMDF POS=(01,60),LENGTH=6,ATTRB=ASKIP,COLOR=RED,            X00272046
+               INITIAL='DATE :'                                         00272103
+DAT2     DFHMDF POS=(01,67),LENGTH=10,ATTRB=ASKIP,COLOR=BLUE,          X00272251
+               INITIAL='MM/DD/YYYY'                                     00272303
+         DFHMDF POS=(03,32),LENGTH=20,ATTRB=ASKIP,COLOR=YELLOW,        X00272446
+               INITIAL='APPLICANT DETAILS'                              00272503
+         DFHMDF POS=(06,02),LENGTH=15,ATTRB=ASKIP,COLOR=GREEN,         X00272699
+               INITIAL='NAME :'                                         00272703
+NAME2    DFHMDF POS=(06,20),LENGTH=30,ATTRB=(IC,UNPROT,FSET),          X00272899
+               HILIGHT=UNDERLINE,COLOR=TURQUOISE                        00272968
+         DFHMDF POS=(06,51),LENGTH=1,ATTRB=ASKIP                        00273023
+         DFHMDF POS=(07,02),LENGTH=15,ATTRB=ASKIP,COLOR=GREEN,         X00273148
+               INITIAL='GENDER :'                                       00273203
+GEND2    DFHMDF POS=(07,20),LENGTH=10,ATTRB=(UNPROT,FSET),             X00273399
+               HILIGHT=UNDERLINE,COLOR=TURQUOISE                        00273499
+         DFHMDF POS=(07,31),LENGTH=1,ATTRB=ASKIP                        00273503
+         DFHMDF POS=(08,02),LENGTH=15,ATTRB=ASKIP,COLOR=GREEN,         X00273699
+               INITIAL='MAIL ID :'                                      00273799
+MAIL2    DFHMDF POS=(08,20),LENGTH=15,ATTRB=(UNPROT,FSET),             X00273899
+               HILIGHT=UNDERLINE,COLOR=TURQUOISE                        00273999
+         DFHMDF POS=(08,36),LENGTH=1,ATTRB=ASKIP                        00274099
+         DFHMDF POS=(09,02),LENGTH=15,ATTRB=ASKIP,COLOR=GREEN,         X00274199
+               INITIAL='MOBILE :'                                       00274299
+MOB2     DFHMDF POS=(09,20),LENGTH=10,ATTRB=(UNPROT,NUM,FSET),         X00274399
+               HILIGHT=UNDERLINE,PICIN='9(10)',PICOUT='9(10)',         X00274499
+               COLOR=TURQUOISE                                          00274599
+         DFHMDF POS=(09,31),LENGTH=1,ATTRB=ASKIP                        00274699
+         DFHMDF POS=(10,02),LENGTH=15,ATTRB=ASKIP,COLOR=GREEN,         X00274799
+               INITIAL='AGE :'                                          00274899
+AGE2     DFHMDF POS=(10,20),LENGTH=02,ATTRB=(UNPROT,NUM,FSET),         X00274999
+               HILIGHT=UNDERLINE,PICIN='9(02)',PICOUT='9(02)',         X00275099
+               COLOR=TURQUOISE                                          00275199
+         DFHMDF POS=(10,23),LENGTH=1,ATTRB=ASKIP                        00275299
+         DFHMDF POS=(11,02),LENGTH=15,ATTRB=ASKIP,COLOR=GREEN,         X00275399
+               INITIAL='AADHAR NUMBER :'                                00275499
+AADHR2   DFHMDF POS=(11,20),LENGTH=10,ATTRB=(UNPROT,NUM,FSET),         X00275599
+               HILIGHT=UNDERLINE,PICIN='9(10)',PICOUT='9(10)',         X00275699
+               COLOR=TURQUOISE                                          00275799
+         DFHMDF POS=(11,31),LENGTH=1,ATTRB=ASKIP                        00275899
+         DFHMDF POS=(12,02),LENGTH=15,ATTRB=ASKIP,COLOR=GREEN,         X00275999
+               INITIAL='ADDRESS :'                                      00276099
+ADDR2    DFHMDF POS=(12,20),LENGTH=30,ATTRB=(UNPROT,FSET),             X00276199
+               HILIGHT=UNDERLINE,COLOR=TURQUOISE                        00276299
+         DFHMDF POS=(12,51),LENGTH=1,ATTRB=ASKIP                        00276399
+         DFHMDF POS=(13,02),LENGTH=15,ATTRB=ASKIP,COLOR=GREEN,         X00276499
+               INITIAL='STATE :'                                        00276599
+STATE2   DFHMDF POS=(13,20),LENGTH=15,ATTRB=(UNPROT,FSET),             X00276699
+               HILIGHT=UNDERLINE,COLOR=TURQUOISE                        00276799
+         DFHMDF POS=(13,36),LENGTH=1,ATTRB=ASKIP                        00276899
+         DFHMDF POS=(14,02),LENGTH=15,ATTRB=ASKIP,COLOR=GREEN,         X00276999
+               INITIAL='CITY :'                                         00277099
+CITY2    DFHMDF POS=(14,20),LENGTH=15,ATTRB=(UNPROT,FSET),             X00277199
+               HILIGHT=UNDERLINE,COLOR=TURQUOISE                        00277299
+         DFHMDF POS=(14,36),LENGTH=1,ATTRB=ASKIP                        00277399
+MSG3     DFHMDF POS=(17,02),LENGTH=67,ATTRB=UNPROT,COLOR=YELLOW,       X00277499
+               INITIAL='ENTRY OF FIRST AND LAST NAME IS MUST'           00277599
+         DFHMDF POS=(19,02),LENGTH=50,ATTRB=PROT,COLOR=TURQUOISE,      X00277699
+               INITIAL='---------------------------------------------'  00277799
+         DFHMDF POS=(21,02),LENGTH=50,ATTRB=PROT,COLOR=GREEN,          X00277899
+               INITIAL='ENTER-CONFIRM PF3-EXIT PF12-CLEAR'              00277999
+SC3MAP   DFHMDI SIZE=(24,80)                                            00278699
+         DFHMDF POS=(01,20),LENGTH=26,ATTRB=ASKIP,COLOR=BLUE,          X00278799
+               INITIAL='E-SERVICE TRANSPORT PORTAL'                     00278899
+         DFHMDF POS=(01,60),LENGTH=6,ATTRB=ASKIP,COLOR=BLUE,           X00278999
+               INITIAL='DATE :'                                         00279099
+DAT3     DFHMDF POS=(01,67),LENGTH=10,ATTRB=ASKIP,COLOR=RED,           X00279199
+               INITIAL='MM/DD/YYYY'                                     00279299
+         DFHMDF POS=(03,32),LENGTH=20,ATTRB=ASKIP,COLOR=YELLOW,        X00279399
+               INITIAL='SUMMARY PAGE'                                   00279499
+         DFHMDF POS=(05,02),LENGTH=13,ATTRB=ASKIP,                     X00279599
+               INITIAL='APPLICANT ID:'                                  00280007
+APID1    DFHMDF POS=(05,17),LENGTH=15,ATTRB=(IC,UNPROT,NUM),           X00281899
+               HILIGHT=UNDERLINE,                                      X00281970
+               COLOR=TURQUOISE                                          00282068
+         DFHMDF POS=(05,33),LENGTH=01,ATTRB=ASKIP                       00282199
+         DFHMDF POS=(09,01),LENGTH=79,ATTRB=ASKIP,COLOR=TURQUOISE,     X00282248
+               HILIGHT=UNDERLINE                                        00282333
+         DFHMDF POS=(10,01),LENGTH=01,ATTRB=ASKIP                       00282433
+         DFHMDF POS=(11,01),LENGTH=15,ATTRB=PROT,                      X00282599
+               INITIAL='FIRST NAME'                                     00282699
+         DFHMDF POS=(11,17),LENGTH=09,ATTRB=PROT,                      X00282799
+               INITIAL='LAST NAME'                                      00282899
+         DFHMDF POS=(11,30),LENGTH=08,ATTRB=PROT,                      X00282999
+               INITIAL='APPLN ID'                                       00283099
+         DFHMDF POS=(11,41),LENGTH=09,ATTRB=PROT,                      X00283199
+               INITIAL='STATUS'                                         00283299
+         DFHMDF POS=(11,52),LENGTH=15,ATTRB=PROT,                      X00283399
+               INITIAL='MAIL ID'                                        00283499
+         DFHMDF POS=(11,69),LENGTH=10,ATTRB=PROT,                      X00283599
+               INITIAL='MOBILE NUMBER'                                  00283699
+         DFHMDF POS=(12,01),LENGTH=79,ATTRB=ASKIP,COLOR=TURQUOISE,     X00283799
+               HILIGHT=UNDERLINE                                        00283899
+         DFHMDF POS=(13,01),LENGTH=01,ATTRB=ASKIP                       00283999
+NAME31   DFHMDF POS=(14,01),LENGTH=15,ATTRB=PROT                        00284099
+NAME32   DFHMDF POS=(14,17),LENGTH=09,ATTRB=PROT                        00284199
+APID3    DFHMDF POS=(14,30),LENGTH=05,ATTRB=PROT,                      X00284299
+               PICIN='9(05)',PICOUT='9(05)'                             00284399
+STAT3    DFHMDF POS=(14,41),LENGTH=09,ATTRB=PROT                        00284499
+MAIL3    DFHMDF POS=(14,52),LENGTH=15,ATTRB=PROT                        00284599
+MOB3     DFHMDF POS=(14,69),LENGTH=10,ATTRB=PROT,                      X00284699
+               PICIN='9(10)',PICOUT='9(10)'                             00284799
+MSG4     DFHMDF POS=(18,02),LENGTH=67,ATTRB=PROT,COLOR=YELLOW,         X00284835
+               INITIAL='MSGS WILL BE DISPLAYED',HILIGHT=BLINK           00284933
+         DFHMDF POS=(20,02),LENGTH=50,ATTRB=PROT,COLOR=TURQUOISE,      X00285048
+               INITIAL='---------------------------------------------'  00285133
+         DFHMDF POS=(21,02),LENGTH=40,ATTRB=PROT,                      X00285235
+               INITIAL='ENTER-SUBMIT   PF12-EXIT   PF3-CLEAR'           00285399
+SC4MAP   DFHMDI SIZE=(24,80)                                            00286014
+         DFHMDF POS=(01,20),LENGTH=26,ATTRB=ASKIP,COLOR=BLUE,          X00286148
+               INITIAL='E-SERVICE TRANSPORT PORTAL'                     00286214
+         DFHMDF POS=(01,60),LENGTH=6,ATTRB=ASKIP,COLOR=BLUE,           X00286351
+               INITIAL='DATE :'                                         00286414
+DAT4     DFHMDF POS=(01,67),LENGTH=10,ATTRB=ASKIP,COLOR=RED,           X00286514
+               INITIAL='MM/DD/YYYY'                                     00286614
+         DFHMDF POS=(03,32),LENGTH=30,ATTRB=ASKIP,COLOR=YELLOW,        X00286748
+               INITIAL='CANCEL REQUEST PAGE'                            00286814
+         DFHMDF POS=(05,02),LENGTH=13,ATTRB=ASKIP,                     X00286914
+               INITIAL='APPLICANT ID:'                                  00287014
+APID2    DFHMDF POS=(05,17),LENGTH=15,ATTRB=(IC,UNPROT,NUM),           X00287199
+               HILIGHT=UNDERLINE,                                      X00287299
+               COLOR=TURQUOISE                                          00287399
+         DFHMDF POS=(05,33),LENGTH=01,ATTRB=ASKIP                       00287499
+         DFHMDF POS=(09,01),LENGTH=79,ATTRB=ASKIP,COLOR=TURQUOISE,     X00287599
+               HILIGHT=UNDERLINE                                        00287699
+         DFHMDF POS=(10,01),LENGTH=01,ATTRB=ASKIP                       00287799
+         DFHMDF POS=(11,01),LENGTH=15,ATTRB=PROT,                      X00287899
+               INITIAL='FIRST NAME'                                     00287999
+         DFHMDF POS=(11,17),LENGTH=09,ATTRB=PROT,                      X00288099
+               INITIAL='LAST NAME'                                      00288199
+         DFHMDF POS=(11,30),LENGTH=08,ATTRB=PROT,                      X00288299
+               INITIAL='APPLN ID'                                       00288399
+         DFHMDF POS=(11,41),LENGTH=09,ATTRB=PROT,                      X00288499
+               INITIAL='STATUS'                                         00288599
+         DFHMDF POS=(11,52),LENGTH=15,ATTRB=PROT,                      X00288699
+               INITIAL='MAIL ID'                                        00288799
+         DFHMDF POS=(11,69),LENGTH=10,ATTRB=PROT,                      X00288899
+               INITIAL='MOBILE NUMBER'                                  00288999
+         DFHMDF POS=(12,01),LENGTH=79,ATTRB=ASKIP,COLOR=TURQUOISE,     X00289099
+               HILIGHT=UNDERLINE                                        00289199
+         DFHMDF POS=(13,01),LENGTH=01,ATTRB=ASKIP                       00289299
+NAME41   DFHMDF POS=(14,01),LENGTH=15,ATTRB=PROT                        00289399
+NAME42   DFHMDF POS=(14,17),LENGTH=09,ATTRB=PROT                        00289499
+APID4    DFHMDF POS=(14,30),LENGTH=05,ATTRB=PROT,                      X00289599
+               PICIN='9(05)',PICOUT='9(05)'                             00289699
+STAT4    DFHMDF POS=(14,41),LENGTH=09,ATTRB=PROT                        00289799
+MAIL4    DFHMDF POS=(14,52),LENGTH=15,ATTRB=PROT                        00289899
+MOB4     DFHMDF POS=(14,69),LENGTH=10,ATTRB=PROT,                      X00289999
+               PICIN='9(10)',PICOUT='9(10)'                             00290099
+MSG5     DFHMDF POS=(18,02),LENGTH=67,ATTRB=PROT,COLOR=YELLOW,         X00292535
+               INITIAL='MSGS WILL BE DISPLAYED',HILIGHT=BLINK           00292614
+         DFHMDF POS=(20,02),LENGTH=50,ATTRB=PROT,COLOR=TURQUOISE,      X00292749
+               INITIAL='---------------------------------------------'  00292814
+         DFHMDF POS=(21,02),LENGTH=40,ATTRB=PROT,                      X00292935
+               INITIAL='ENTER-SUBMIT   PF12-EXIT   PF3-CLEAR'           00293099
+         DFHMSD TYPE=FINAL                                              00294000
+         END                                                            00300000
+

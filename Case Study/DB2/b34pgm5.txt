@@ -1,0 +1,311 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. B24PGM5.
+      **********************************
+      * SCREEN NUMBER ONE =CANCEL PAGE *
+      **********************************
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+      * SQL STATEMENTS
+            EXEC SQL
+                INCLUDE TABVAR
+            END-EXEC.
+            EXEC SQL
+                INCLUDE SQLCA
+            END-EXEC.
+      *
+       COPY B24MPS1.
+       COPY DFHAID.
+       COPY USERREC.
+       01 WS-UUID  PIC 9(5).
+       01 WS-DATE  PIC S9(15) COMP-3.
+       01 WS-COMM.
+      *   05 WS-ID        PIC 9 VALUE 0.
+          05 WS-CNT PIC 9 VALUE 0.
+       01 WS-SESS-END            PIC X(30) VALUE 'SESSION ENDED...'.
+       01 WS-SESS-END-LEN        PIC S9(4) COMP VALUE 30.
+       01 WS-RESP-VAR            PIC S9(8) COMP.
+       01 USER-REC-LEN           PIC S9(4) COMP VALUE 170.
+      ************************
+       01 TEMP-APPID PIC 9(15).
+       01 WS-STAT    PIC A(09) VALUE 'CANCELLED'.
+      *LINKAGE SECTION.
+      *01 DFHCOMMAREA.
+      *   05 LN-ID           PIC 9.
+       PROCEDURE DIVISION.
+       MAIN.
+      * INITIALIZING VARIABLES.
+            MOVE LOW-VALUES TO SC4MAPO.
+            EVALUATE EIBCALEN
+                   WHEN 0
+                        PERFORM FIRST-MAP
+                   WHEN OTHER
+      *                 MOVE DFHCOMMAREA TO WS-COMM
+                        PERFORM OLD-MAP
+            END-EVALUATE.
+            PERFORM TEMPORARY-EXIT.
+        FIRST-MAP.
+              PERFORM SEND-MAP.
+        OLD-MAP.
+              PERFORM CHECK-AID.
+        SEND-MAP.
+            PERFORM DT-PARA.
+      * DISPLAY VALUES
+            EXEC CICS SEND
+                      MAP('SC4MAP')
+                      MAPSET('B24MPS1')
+                      ERASE
+            END-EXEC.
+        RECEIVE-MAP.
+      * HANDLE MAP-ERROR & GET VALUES
+            EXEC CICS RECEIVE
+                      MAP('SC4MAP')
+                      MAPSET('B24MPS1')
+                      NOHANDLE
+                      RESP(WS-RESP-VAR)
+            END-EXEC.
+            EVALUATE WS-RESP-VAR
+                   WHEN DFHRESP(NORMAL)
+                        CONTINUE
+                   WHEN DFHRESP(MAPFAIL)
+                        PERFORM MAP-ERR-PARA
+                   WHEN OTHER
+                        PERFORM OTHER-MAP-ERR-PARA
+            END-EVALUATE.
+        TEMPORARY-EXIT.
+            EXEC CICS
+                 RETURN
+                 TRANSID('B245')
+                 COMMAREA(WS-COMM)
+            END-EXEC.
+        PERMANENT-EXIT.
+            EXEC CICS
+                 RETURN
+            END-EXEC.
+        DT-PARA.
+            EXEC CICS
+                 ASKTIME
+                 ABSTIME(WS-DATE)
+            END-EXEC.
+            EXEC CICS
+                 FORMATTIME
+                 ABSTIME(WS-DATE)
+                 MMDDYYYY(DAT4O)
+                 DATESEP('/')
+            END-EXEC.
+        CHECK-AID.
+            EVALUATE EIBAID
+                   WHEN DFHENTER
+                        PERFORM RECEIVE-MAP
+                        PERFORM PROCESS-OPER
+                        PERFORM SEND-MAP
+                   WHEN DFHPF3
+                        MOVE -1 TO APID2L
+                        MOVE LOW-VALUES TO SC4MAPO
+                        PERFORM SEND-MAP
+                   WHEN DFHPF12
+                        PERFORM GO-TO-PARA
+      *                 PERFORM SEND-MESSAGE
+      *                 PERFORM PERMANENT-EXIT
+      *            WHEN DFHPF12
+      *                 MOVE LOW-VALUES TO SC3MAPO
+      *                 PERFORM SEND-MAP
+                   WHEN OTHER
+                        MOVE "INCORRECT PFKEY - PRESS THE CORRECT PFKEY"
+                              TO MSG5O
+                        PERFORM SEND-MAP
+            END-EVALUATE.
+        GO-TO-PARA.
+                        EXEC CICS
+                             XCTL
+                             PROGRAM('B24PGM3')
+                        END-EXEC.
+        SEND-MESSAGE.
+             EXEC CICS
+                  SEND
+                  FROM (WS-SESS-END)
+                  LENGTH(WS-SESS-END-LEN)
+                  ERASE
+             END-EXEC.
+      * MAIL FAILS ARE HANDLED HERE
+        MAP-ERR-PARA.
+             MOVE "OPTION CANNOT BE LEFT BLANK" TO MSG5O.
+             PERFORM SEND-MAP.
+        OTHER-MAP-ERR-PARA.
+             MOVE "OPTION CANNOT BE LEFT BLANK" TO MSG5O.
+             PERFORM SEND-MAP.
+        PROCESS-OPER.
+            IF APID2L = 0
+                 MOVE -1 TO APID2L
+                 MOVE "APPLICANT ID MUST BE ENTERED " TO MSG5O
+            ELSE
+               MOVE APID2I TO HV-APPLICANTID
+               MOVE APID2I TO TEMP-APPID
+      *        PERFORM READ-RECORD-PARA
+               PERFORM CHECK-STATUS-PARA
+      *        PERFORM UPDATE-TABLE-PARA
+      *        PERFORM READ-TABLE-PARA
+            END-IF.
+        CHECK-STATUS-PARA.
+            EXEC SQL
+                 SELECT STATUS
+                 INTO :HV-STATUS
+                 FROM DEMOLLR
+                 WHERE APPLICANTID = :HV-APPLICANTID
+            END-EXEC.
+            EVALUATE SQLCODE
+                     WHEN 0
+                          MOVE "RECORD FOUND" TO MSG5O
+                          IF HV-STATUS = "SUBMITTED"
+                               PERFORM UPDATE-TABLE-PARA
+                          ELSE
+                               MOVE "APPLICATION ALREADY CANCELLED"
+                                     TO MSG5O
+                          END-IF
+                     WHEN 100
+                          MOVE "RECORD NOT FOUND" TO MSG5O
+                     WHEN OTHER
+                          MOVE "OTHER SQL  ERROR" TO MSG5O
+            END-EVALUATE.
+        UPDATE-TABLE-PARA.
+            MOVE WS-STAT TO  HV-STATUS.
+            EXEC SQL
+                 UPDATE DEMOLLR
+                 SET STATUS = :HV-STATUS
+                 WHERE APPLICANTID = :HV-APPLICANTID
+            END-EXEC.
+            EVALUATE SQLCODE
+                     WHEN 0
+                          MOVE "RECORD FOUND" TO MSG5O
+                          PERFORM READ-TABLE-PARA
+                     WHEN 100
+                          MOVE "RECORD NOT FOUND" TO MSG5O
+                     WHEN OTHER
+                          MOVE "OTHER SQL  ERROR" TO MSG5O
+            END-EVALUATE.
+        READ-TABLE-PARA.
+            MOVE TEMP-APPID TO HV-APPLICANTID
+            EXEC SQL
+                 SELECT NAME,MAILID,MOBILE,STATUS
+                 INTO :HV-NAME,:HV-MAILID,:HV-MOBILE,:HV-STATUS
+                 FROM DEMOLLR
+                 WHERE APPLICANTID = :HV-APPLICANTID
+            END-EXEC.
+            EVALUATE SQLCODE
+                     WHEN 0
+                          MOVE "RECORD FOUND" TO MSG5O
+                          PERFORM TABLE-TO-SCREEN
+                     WHEN 100
+                          MOVE "RECORD NOT FOUND" TO MSG5O
+                     WHEN OTHER
+                          MOVE "OTHER SQL  ERROR" TO MSG5O
+            END-EVALUATE.
+        TABLE-TO-SCREEN.
+            UNSTRING HV-NAME DELIMITED BY SPACE
+                   INTO NAME41O, NAME42O
+            END-UNSTRING.
+            MOVE HV-APPLICANTID TO WS-UUID.
+            MOVE WS-UUID TO APID4O.
+            MOVE HV-STATUS TO STAT4O.
+            MOVE HV-MAILID TO MAIL4O.
+            MOVE HV-MOBILE TO MOB4O.
+      **********************************************************
+        READ-RECORD-PARA.
+            MOVE APID2I TO U-IDD.
+            EXEC CICS READ
+                      FILE('B24FIL1')
+                      RIDFLD(U-IDD)
+                      INTO(USERREC)
+                      LENGTH(USER-REC-LEN)
+                      RESP(WS-RESP-VAR)
+                      UPDATE
+            END-EXEC.
+            EVALUATE WS-RESP-VAR
+                     WHEN DFHRESP(NORMAL)
+      *                   MOVE "RECORD FOUND" TO MSG5O
+      *                   PERFORM FILE-TO-SCREEN
+      *                   PERFORM DELETE-RECORD
+                          IF U-STATUS = "CANCELLED"
+      *                      PERFORM READ-UPDATED-PARA
+                             MOVE "APPLICATION ALREADY CANCELLED"
+                                           TO MSG5O
+                          ELSE
+                             PERFORM UPDATE-PARA
+                          END-IF
+                     WHEN DFHRESP(NOTFND)
+                          MOVE "RECORD NOT FOUND" TO MSG5O
+                     WHEN DFHRESP(NOTOPEN)
+                          MOVE "FILE NOT OPEN" TO MSG5O
+                     WHEN OTHER
+                          MOVE "OTHER FILE ERROR" TO MSG5O
+            END-EVALUATE.
+        UPDATE-PARA.
+            MOVE 'CANCELLED' TO U-STATUS.
+            EXEC CICS
+                 REWRITE
+                 FILE('B24FIL1')
+                 FROM(USERREC)
+                 LENGTH(USER-REC-LEN)
+                 RESP(WS-RESP-VAR)
+            END-EXEC.
+            EVALUATE WS-RESP-VAR
+                     WHEN DFHRESP(NORMAL)
+      *                   MOVE "RECORD FOUND" TO MSG5O
+      *                   PERFORM FILE-TO-SCREEN
+      *                   PERFORM DELETE-RECORD
+                          PERFORM READ-UPDATED-PARA
+                     WHEN DFHRESP(NOTFND)
+                          MOVE "RECORD NOT FOUND" TO MSG5O
+                     WHEN DFHRESP(NOTOPEN)
+                          MOVE "FILE NOT OPEN" TO MSG5O
+                     WHEN OTHER
+                          MOVE "OTHER FILE ERROR" TO MSG5O
+            END-EVALUATE.
+        READ-UPDATED-PARA.
+            EXEC CICS READ
+                      FILE('B24FIL1')
+                      RIDFLD(U-IDD)
+                      INTO(USERREC)
+                      LENGTH(USER-REC-LEN)
+                      RESP(WS-RESP-VAR)
+            END-EXEC.
+            EVALUATE WS-RESP-VAR
+                     WHEN DFHRESP(NORMAL)
+                          MOVE "APPLICATION CANCELLED..." TO MSG5O
+                          PERFORM FILE-TO-SCREEN
+                     WHEN DFHRESP(NOTFND)
+                          MOVE "RECORD NOT FOUND" TO MSG5O
+                     WHEN DFHRESP(NOTOPEN)
+                          MOVE "FILE NOT OPEN" TO MSG5O
+                     WHEN OTHER
+                          MOVE "OTHER FILE ERROR" TO MSG5O
+            END-EVALUATE.
+        FILE-TO-SCREEN.
+            UNSTRING U-NAME DELIMITED BY SPACE
+                   INTO NAME41O, NAME42O
+            END-UNSTRING.
+            MOVE U-IDD       TO WS-UUID.
+            MOVE WS-UUID     TO APID4O.
+            MOVE U-STATUS    TO STAT4O.
+            MOVE U-MAILID    TO MAIL4O.
+            MOVE U-MOBILE    TO MOB4O.
+      *     MOVE "CANCELLATION DONE" TO MSG5O.
+      * DELETE-RECORD.
+      *     MOVE APID2O TO U-IDD.
+      *     EXEC CICS
+      *          DELETE
+      *          FILE('B24FIL1')
+      *          RIDFLD(U-IDD)
+      *          RESP(WS-RESP-VAR)
+      *     END-EXEC.
+      *     EVALUATE WS-RESP-VAR
+      *              WHEN DFHRESP(NORMAL)
+      *                   MOVE "APPLICATION HAS BEEN CANCELLED"
+      *                         TO MSG5O
+      *              WHEN DFHRESP(NOTFND)
+      *                   MOVE "RECORD NOT FOUND" TO MSG5O
+      *              WHEN DFHRESP(NOTOPEN)
+      *                   MOVE "FILE NOT OPEN" TO MSG5O
+      *              WHEN OTHER
+      *                   MOVE "UNABLE TO CANCEL REQUEST" TO MSG5O
+      *     END-EVALUATE.
+

@@ -1,0 +1,142 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. B24PGM3.
+      **********************************
+      * SCREEN NUMBER ONE = SC1MAP     *
+      **********************************
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       COPY B24MPS1.
+       COPY DFHAID.
+       01 WS-DATE  PIC S9(15) COMP-3.
+       01 WS-COMM.
+          05 WS-CNT PIC 9 VALUE 0.
+       01 WS-SESS-END            PIC X(30) VALUE 'LOGOFF SUCCESS..'.
+       01 WS-SESS-END-LEN        PIC S9(4) COMP VALUE 30.
+      *01 WS-TRANSID             PIC X(7).
+       01 WS-RESP-VAR            PIC S9(8) COMP.
+       PROCEDURE DIVISION.
+       MAIN.
+      * INITIALIZING VARIABLES.
+            MOVE LOW-VALUES TO SC1MAPO.
+            EVALUATE EIBCALEN
+                   WHEN 0
+                        PERFORM FIRST-MAP
+                   WHEN OTHER
+                        PERFORM OLD-MAP
+            END-EVALUATE.
+            PERFORM TEMPORARY-EXIT.
+        FIRST-MAP.
+              PERFORM SEND-MAP.
+        OLD-MAP.
+              PERFORM CHECK-AID.
+        SEND-MAP.
+            PERFORM DT-PARA.
+      * DISPLAY VALUES
+            EXEC CICS SEND
+                      MAP('SC1MAP')
+                      MAPSET('B24MPS1')
+                      ERASE
+            END-EXEC.
+        RECEIVE-MAP.
+      * HANDLE MAP-ERROR & GET VALUES
+            EXEC CICS RECEIVE
+                      MAP('SC1MAP')
+                      MAPSET('B24MPS1')
+                      NOHANDLE
+                      RESP(WS-RESP-VAR)
+            END-EXEC.
+            EVALUATE WS-RESP-VAR
+                   WHEN DFHRESP(NORMAL)
+                        CONTINUE
+                   WHEN DFHRESP(MAPFAIL)
+                        PERFORM MAP-ERR-PARA
+                   WHEN OTHER
+                        PERFORM OTHER-MAP-ERR-PARA
+            END-EVALUATE.
+        TEMPORARY-EXIT.
+            EXEC CICS
+                 RETURN
+                 TRANSID('B243')
+                 COMMAREA(WS-COMM)
+            END-EXEC.
+        PERMANENT-EXIT.
+            EXEC CICS
+                 RETURN
+            END-EXEC.
+        DT-PARA.
+            EXEC CICS
+                 ASKTIME
+                 ABSTIME(WS-DATE)
+            END-EXEC.
+            EXEC CICS
+                 FORMATTIME
+                 ABSTIME(WS-DATE)
+                 MMDDYYYY(DATTO)
+                 DATESEP('/')
+            END-EXEC.
+        CHECK-AID.
+            EVALUATE EIBAID
+                   WHEN DFHPF2
+                        PERFORM RECEIVE-MAP
+                        PERFORM PROCESS-OPER
+                        PERFORM SEND-MAP
+                   WHEN DFHPF3
+                        PERFORM SEND-MESSAGE
+                        PERFORM PERMANENT-EXIT
+                   WHEN DFHPF12
+                        MOVE LOW-VALUES TO SC1MAPO
+                        PERFORM SEND-MAP
+                   WHEN OTHER
+                        MOVE "INCORRECT PFKEY - PRESS THE CORRECT PFKEY"
+                              TO MSG2O
+                        PERFORM SEND-MAP
+            END-EVALUATE.
+        PROCESS-OPER.
+            EVALUATE OPTI
+                   WHEN 1
+      *                 MOVE 'B24PGM4' TO WS-TRANSID
+      *                 MOVE "APPLY LLR SELECTED" TO MSG2O
+      *                 PERFORM MAP-TRANSFER
+                        EXEC CICS
+                        XCTL
+                        PROGRAM('B24PGM4')
+                        END-EXEC
+                   WHEN 2
+      *                 MOVE 'B24PGM2' TO WS-TRANSID
+      *                 MOVE "VIEW  LLR SELECTED" TO MSG2O
+      *                 PERFORM MAP-TRANSFER
+                        EXEC CICS
+                        XCTL
+                        PROGRAM('B24PGM2')
+                        END-EXEC
+                   WHEN 3
+      *                  MOVE 'B24PGM6' TO WS-TRANSID
+      *                 MOVE "CANCEL LLR SELECTED" TO MSG2O
+      *                 PERFORM MAP-TRANSFER
+                        EXEC CICS
+                        XCTL
+                        PROGRAM('B24PGM6')
+                        END-EXEC
+                   WHEN OTHER MOVE 'SELECT A VALID OPTION' TO MSG2O
+            END-EVALUATE.
+      *  USE OF COMMENTS INSIDE EXEC STAT NOT ALLOWED
+      * MAP-TRANSFER.
+      *     EXEC CICS
+      *          XCTL
+      *          PROGRAM(WS-TRANSID)
+      *          COMMAREA(WS-COMM)
+      *     END-EXEC.
+        SEND-MESSAGE.
+             EXEC CICS
+                  SEND
+                  FROM (WS-SESS-END)
+                  LENGTH(WS-SESS-END-LEN)
+                  ERASE
+             END-EXEC.
+        MAP-ERR-PARA.
+             MOVE "OPTION CANNOT BE LEFT BLANK" TO MSG2O.
+             PERFORM SEND-MAP.
+        OTHER-MAP-ERR-PARA.
+             MOVE "OPTION CANNOT BE LEFT BLANK" TO MSG2O.
+             PERFORM SEND-MAP.
+
